@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Upload, ArrowRight, Loader } from 'lucide-react';
-import { apiPost } from '../../lib/apiClient';
-const supabase = {};
+import { apiPost, apiPostFormData } from '../../lib/apiClient';
 import useCategoriesStore from '../../store/categoriesStore';
+import useBooksStore from '../../store/booksStore';
 
 export default function AddBook() {
   const { categories } = useCategoriesStore();
+  const { addBook } = useBooksStore();
   const [mode, setMode] = useState('select');
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -44,11 +45,7 @@ export default function AddBook() {
         const formData = new FormData();
         formData.append('image', file);
 
-        const { data: aiResponse, error } = await supabase.functions.invoke('analyze-book-image', {
-          body: formData
-        });
-
-        if (error) throw error;
+        const aiResponse = await apiPostFormData('/api/analyze-book-image', formData);
 
         setAiData(aiResponse);
         setBookData(prev => ({
@@ -77,47 +74,23 @@ export default function AddBook() {
       let imageUrl = bookData.image_url;
 
       if (imageFile) {
-        const fileName = `${Date.now()}-${imageFile.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('book-images')
-          .upload(`books/${fileName}`, imageFile);
-
-        if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('book-images')
-          .getPublicUrl(`books/${fileName}`);
-
-        imageUrl = publicUrl;
+        // Placeholder: convert image to base64 string for now
+        const reader = new FileReader();
+        imageUrl = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(imageFile);
+        });
       }
 
       const finalBookData = {
         ...bookData,
-        image_url: imageUrl
+        image_url: imageUrl,
+        categories: selectedCategories
       };
 
-      // Insert book
-      const { data: book, error: bookError } = await supabase
-        .from('books')
-        .insert([finalBookData])
-        .select()
-        .single();
-
-      if (bookError) throw bookError;
-
-      // Insert book categories
-      if (selectedCategories.length > 0) {
-        const categoryLinks = selectedCategories.map(categoryId => ({
-          book_id: book.id,
-          category_id: categoryId
-        }));
-
-        const { error: categoriesError } = await supabase
-          .from('book_categories')
-          .insert(categoryLinks);
-
-        if (categoriesError) throw categoriesError;
-      }
+      const result = await addBook(finalBookData);
+      if (!result.success) throw result.error;
 
       alert('הספר נוסף בהצלחה!');
       setBookData({

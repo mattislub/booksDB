@@ -19,3 +19,14 @@ export const apiPost = async (path, body) => {
   }
   return res.json();
 };
+
+export const apiPostFormData = async (path, formData) => {
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) {
+    throw new Error('API request failed');
+  }
+  return res.json();
+};
