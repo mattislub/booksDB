@@ -95,7 +95,7 @@ const books = [
       const data = await res.json();
       console.log('הוזן:', data.title);
     } catch (error) {
-      console.error clocks(`שגיאה בהוספת ${book.title}:`, error);
+      console.error(`שגיאה בהוספת ${book.title}:`, error);
     }
   }
 })();
