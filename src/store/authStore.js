@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { supabase } from '../lib/supabaseClient';
+import { apiPost } from '../lib/apiClient';
+const supabase = {};
 
 const useAuthStore = create((set) => ({
   user: null,

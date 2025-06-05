@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useCartStore from '../store/cartStore';
 import useAuthStore from '../store/authStore';
-import { supabase } from '../lib/supabaseClient';
+import { apiPost } from '../lib/apiClient';
+const supabase = {};
 import { Phone, Mail, MapPin } from 'lucide-react';
 
 export default function Checkout() {

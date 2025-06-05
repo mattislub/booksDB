@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
-import { supabase } from '../lib/supabaseClient';
+import { apiGet, apiPost } from '../lib/apiClient';
+const supabase = {};
 import useAuthStore from '../store/authStore';
 
 export default function UserWishlist() {

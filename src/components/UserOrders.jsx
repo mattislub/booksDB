@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { apiGet } from '../lib/apiClient';
+const supabase = {};
 import useAuthStore from '../store/authStore';
 
 export default function UserOrders() {
