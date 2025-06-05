@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import useCartStore from '../store/cartStore';
 import useAuthStore from '../store/authStore';
 import { apiPost } from '../lib/apiClient';
-const supabase = {};
 import { Phone, Mail, MapPin } from 'lucide-react';
 
 export default function Checkout() {
@@ -64,61 +63,9 @@ export default function Checkout() {
     setStatus('שולח הזמנה...');
 
     try {
-      // Create order in database
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          total: getTotal(),
-          shipping_address: formData.address,
-          phone: formData.phone,
-          notes: formData.notes
-        })
-        .select()
-        .single();
+      await apiPost("/api/orders", { user_id: user.id, items, total: getTotal(), shipping_address: formData.address, phone: formData.phone, notes: formData.notes, email: formData.email, name: formData.name });
 
-      if (orderError) throw orderError;
-
-      // Create order items
-      const orderItems = items.map(item => ({
-        order_id: order.id,
-        book_id: item.id,
-        quantity: item.quantity,
-        price: item.price
-      }));
-
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) throw itemsError;
-
-      // Send email notification
-      const orderNumber = order.id.slice(0, 8).toUpperCase();
-      const emailData = {
-        orderNumber,
-        customerName: formData.name,
-        customerEmail: formData.email,
-        customerPhone: formData.phone,
-        items: items.map(item => ({
-          title: item.title,
-          quantity: item.quantity,
-          price: item.price
-        })),
-        total: getTotal(),
-        shippingAddress: formData.address
-      };
-
-      const { error: emailError } = await supabase.functions.invoke('send-order-email', {
-        body: { orderData: emailData }
-      });
-
-      if (emailError) {
-        console.error('Error sending email:', emailError);
-        // Continue with order completion even if email fails
-      }
-
-      setStatus('ההזמנה התקבלה בהצלחה!');
+      setStatus("ההזמנה התקבלה בהצלחה!");
       clearCart();
       setShowThankYou(true);
     } catch (error) {

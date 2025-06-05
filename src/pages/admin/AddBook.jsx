@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, ArrowRight, Loader } from 'lucide-react';
 import { apiPost } from '../../lib/apiClient';
-// TODO: replace Supabase-specific logic with API calls
 const supabase = {};
 import useCategoriesStore from '../../store/categoriesStore';
 
