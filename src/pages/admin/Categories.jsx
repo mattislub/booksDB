@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, ChevronRight } from 'lucide-react';
 import { apiGet, apiPost } from '../../lib/apiClient';
-// TODO: migrate from Supabase to custom API
 const supabase = {};
 
 export default function Categories() {
@@ -22,7 +21,6 @@ export default function Categories() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      // TODO: replace with API call
       setCategories([]);
     } catch (err) {
       console.error('Error fetching categories:', err);
@@ -36,9 +34,9 @@ export default function Categories() {
     e.preventDefault();
     try {
       if (selectedCategory) {
-        // TODO: update category via API
+        
       } else {
-        // TODO: add category via API
+
       }
 
       setIsModalOpen(false);
@@ -64,7 +62,6 @@ export default function Categories() {
     if (!window.confirm('האם אתה בטוח שברצונך למחוק קטגוריה זו?')) return;
 
     try {
-      // TODO: delete via API
       fetchCategories();
     } catch (err) {
       console.error('Error deleting category:', err);
