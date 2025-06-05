@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { supabase } from '../lib/supabaseClient';
+import { apiGet, apiPost } from '../lib/apiClient';
 
 const useCategoriesStore = create((set) => ({
   categories: [],
@@ -9,12 +9,7 @@ const useCategoriesStore = create((set) => ({
   initialize: async () => {
     try {
       set({ loading: true, error: null });
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
+      const data = await apiGet('/api/categories');
       set({ categories: data || [], loading: false });
     } catch (error) {
       console.error('Error loading categories:', error);
@@ -24,14 +19,7 @@ const useCategoriesStore = create((set) => ({
 
   addCategory: async (category) => {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .insert([category])
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      const data = await apiPost('/api/categories', category);
       set(state => ({
         categories: [...state.categories, data]
       }));
@@ -44,17 +32,9 @@ const useCategoriesStore = create((set) => ({
 
   updateCategory: async (id, updatedCategory) => {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .update(updatedCategory)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      const data = await apiPost(`/api/categories/${id}`, updatedCategory);
       set(state => ({
-        categories: state.categories.map(category => 
+        categories: state.categories.map(category =>
           category.id === id ? data : category
         )
       }));
@@ -67,13 +47,7 @@ const useCategoriesStore = create((set) => ({
 
   deleteCategory: async (id) => {
     try {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
+      await apiPost(`/api/categories/${id}/delete`, {});
       set(state => ({
         categories: state.categories.filter(category => category.id !== id)
       }));

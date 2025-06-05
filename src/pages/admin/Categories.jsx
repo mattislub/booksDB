@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, ChevronRight } from 'lucide-react';
-import { supabase } from '../../lib/supabaseClient';
+import { apiGet, apiPost } from '../../lib/apiClient';
+// TODO: migrate from Supabase to custom API
+const supabase = {};
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
@@ -20,13 +22,8 @@ export default function Categories() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
-      setCategories(data || []);
+      // TODO: replace with API call
+      setCategories([]);
     } catch (err) {
       console.error('Error fetching categories:', err);
       setError('שגיאה בטעינת הקטגוריות');
@@ -39,24 +36,9 @@ export default function Categories() {
     e.preventDefault();
     try {
       if (selectedCategory) {
-        const { error } = await supabase
-          .from('categories')
-          .update({ 
-            name: formData.name,
-            parent_id: formData.parent_id || null
-          })
-          .eq('id', selectedCategory.id);
-
-        if (error) throw error;
+        // TODO: update category via API
       } else {
-        const { error } = await supabase
-          .from('categories')
-          .insert([{ 
-            name: formData.name,
-            parent_id: formData.parent_id || null
-          }]);
-
-        if (error) throw error;
+        // TODO: add category via API
       }
 
       setIsModalOpen(false);
@@ -82,12 +64,7 @@ export default function Categories() {
     if (!window.confirm('האם אתה בטוח שברצונך למחוק קטגוריה זו?')) return;
 
     try {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      // TODO: delete via API
       fetchCategories();
     } catch (err) {
       console.error('Error deleting category:', err);

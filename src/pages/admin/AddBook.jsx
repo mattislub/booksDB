@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Upload, ArrowRight, Loader } from 'lucide-react';
-import { supabase } from '../../lib/supabaseClient';
+import { apiPost } from '../../lib/apiClient';
+// TODO: replace Supabase-specific logic with API calls
+const supabase = {};
 import useCategoriesStore from '../../store/categoriesStore';
 
 export default function AddBook() {
