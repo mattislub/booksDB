@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { apiGet } from '../lib/apiClient';
-const supabase = {};
 import useAuthStore from '../store/authStore';
 
 export default function UserOrders() {
@@ -13,22 +12,7 @@ export default function UserOrders() {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const { data: ordersData, error: ordersError } = await supabase
-          .from('orders')
-          .select(`
-            *,
-            order_items:order_items (
-              *,
-              book:books (
-                title,
-                price
-              )
-            )
-          `)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (ordersError) throw ordersError;
+        const ordersData = await apiGet('/api/orders');
         setOrders(ordersData || []);
       } catch (err) {
         console.error('Error fetching orders:', err);

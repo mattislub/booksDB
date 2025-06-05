@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { apiGet, apiPost } from '../lib/apiClient';
-const supabase = {};
 import useAuthStore from '../store/authStore';
 
 export default function UserProfile() {
@@ -17,14 +16,8 @@ export default function UserProfile() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+        const data = await apiGet('/api/profile');
 
-        if (error) throw error;
-        
         if (data) {
           setFormData({
             name: data.name || '',
@@ -48,17 +41,9 @@ export default function UserProfile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('שומר שינויים...');
-    
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          ...formData,
-          updated_at: new Date()
-        });
 
-      if (error) throw error;
+    try {
+      await apiPost('/api/profile', { id: user.id, ...formData });
       setStatus('הפרטים נשמרו בהצלחה!');
     } catch (err) {
       console.error('Error updating profile:', err);

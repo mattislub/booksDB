@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { apiPost } from '../lib/apiClient';
-const supabase = {};
+import { apiGet, apiPost } from '../lib/apiClient';
 
 const useAuthStore = create((set) => ({
   user: null,
@@ -10,22 +9,18 @@ const useAuthStore = create((set) => ({
   initialize: async () => {
     try {
       console.log('Initializing auth store...');
-      
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
 
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
+      const user = await apiGet('/api/auth/user');
 
       console.log('Auth initialization successful');
-      set({ 
+      set({
         user,
         loading: false,
         error: null
       });
     } catch (error) {
       console.error('Error in auth initialization:', error);
-      set({ 
+      set({
         error: 'שגיאה בטעינת המשתמש',
         loading: false,
         user: null
@@ -36,21 +31,16 @@ const useAuthStore = create((set) => ({
   signIn: async (email, password) => {
     try {
       set({ loading: true, error: null });
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
 
-      if (error) throw error;
-      
+      const data = await apiPost('/api/auth/login', { email, password });
+
       set({ user: data.user, loading: false });
       return { success: true };
     } catch (error) {
       console.error('Error in signIn:', error);
-      set({ 
+      set({
         error: 'פרטי התחברות שגויים',
-        loading: false 
+        loading: false
       });
       return { success: false, error };
     }
@@ -59,29 +49,20 @@ const useAuthStore = create((set) => ({
   signUp: async (email, password) => {
     try {
       set({ loading: true, error: null });
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password
-      });
 
-      if (error) throw error;
+      const data = await apiPost('/api/auth/register', { email, password });
 
       if (data?.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([{ id: data.user.id }]);
-
-        if (profileError) throw profileError;
+        await apiPost('/api/profile', { id: data.user.id });
       }
 
       set({ user: data.user, loading: false });
       return { success: true };
     } catch (error) {
       console.error('Error in signUp:', error);
-      set({ 
+      set({
         error: 'שגיאה בהרשמה',
-        loading: false 
+        loading: false
       });
       return { success: false, error };
     }
@@ -89,9 +70,7 @@ const useAuthStore = create((set) => ({
 
   signOut: async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
+      await apiPost('/api/auth/logout', {});
       set({ user: null, loading: false });
     } catch (error) {
       console.error('Error in signOut:', error);

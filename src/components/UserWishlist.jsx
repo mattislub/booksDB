@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import { apiGet, apiPost } from '../lib/apiClient';
-const supabase = {};
 import useAuthStore from '../store/authStore';
 
 export default function UserWishlist() {
@@ -18,21 +17,7 @@ export default function UserWishlist() {
       setLoading(true);
       setError(null);
       
-      const { data, error: wishlistError } = await supabase
-        .from('wishlists')
-        .select(`
-          *,
-          book:books (
-            id,
-            title,
-            author,
-            price,
-            image_url
-          )
-        `)
-        .eq('user_id', user.id);
-
-      if (wishlistError) throw wishlistError;
+      const data = await apiGet('/api/wishlist');
       setWishlist(data || []);
     } catch (err) {
       console.error('Error fetching wishlist:', err);
@@ -49,13 +34,8 @@ export default function UserWishlist() {
   const handleRemove = async (id) => {
     try {
       setError(null);
-      const { error: deleteError } = await supabase
-        .from('wishlists')
-        .delete()
-        .eq('id', id);
+      await apiPost(`/api/wishlist/${id}/delete`, {});
 
-      if (deleteError) throw deleteError;
-      
       // Refresh the wishlist after deletion
       await fetchWishlist();
     } catch (err) {
