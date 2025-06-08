@@ -8,7 +8,9 @@ const { Pool } = pkg;
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 const app = express();
-app.use(express.json());
+// Increase payload limits to allow larger JSON bodies
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Get books with optional search and filter parameters
 app.get('/api/books', async (req, res) => {
