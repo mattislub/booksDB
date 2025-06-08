@@ -9,6 +9,7 @@ import Reports from './pages/admin/Reports'
 import EmailPreview from './pages/admin/EmailPreview'
 import AddBook from './pages/admin/AddBook'
 import Categories from './pages/admin/Categories'
+import Settings from './pages/admin/Settings'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -22,6 +23,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/admin/categories" element={<Categories />} />
         <Route path="/admin/reports" element={<Reports />} />
         <Route path="/admin/email-preview" element={<EmailPreview />} />
+        <Route path="/admin/settings" element={<Settings />} />
       </Routes>
     </Router>
   </React.StrictMode>,

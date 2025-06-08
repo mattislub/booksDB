@@ -31,6 +31,17 @@ npm run server
 
 The server reads the environment variables above and listens on `PORT`.
 
+### Initializing Extra Tables
+
+To create optional tables for orders, promotions and other admin features run:
+
+```bash
+curl -X POST http://localhost:3000/api/setup
+```
+
+This route creates the `orders`, `order_items`, `promotions`, `email_subscribers`,
+`settings` and `statistics` tables if they do not exist.
+
 ## Building and Serving the React Frontend
 
 During development you can run:

@@ -279,6 +279,57 @@ app.post('/api/content/:key', async (req, res) => {
   }
 });
 
+// ----- Setup route -----
+app.post('/api/setup', async (req, res) => {
+  try {
+    await pool.query(`CREATE TABLE IF NOT EXISTS orders (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER,
+      total NUMERIC(10,2) NOT NULL,
+      status TEXT DEFAULT 'pending',
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    await pool.query(`CREATE TABLE IF NOT EXISTS order_items (
+      id SERIAL PRIMARY KEY,
+      order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+      book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
+      quantity INTEGER NOT NULL,
+      price NUMERIC(10,2) NOT NULL
+    )`);
+
+    await pool.query(`CREATE TABLE IF NOT EXISTS promotions (
+      id SERIAL PRIMARY KEY,
+      code TEXT NOT NULL UNIQUE,
+      discount NUMERIC(5,2) NOT NULL,
+      expires_at TIMESTAMPTZ
+    )`);
+
+    await pool.query(`CREATE TABLE IF NOT EXISTS email_subscribers (
+      id SERIAL PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      subscribed_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    await pool.query(`CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )`);
+
+    await pool.query(`CREATE TABLE IF NOT EXISTS statistics (
+      id SERIAL PRIMARY KEY,
+      metric TEXT NOT NULL,
+      value NUMERIC,
+      recorded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Setup failed' });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
