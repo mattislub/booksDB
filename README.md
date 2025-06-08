@@ -8,6 +8,7 @@ Create a `.env` file (you can copy `.env.example`) and set the following variabl
 
 - `DATABASE_URL` – PostgreSQL connection string used by the API server.
 - `PORT` – Port for the Express server (defaults to `3000` if not set).
+- `VITE_API_URL` – Base URL for API requests used by the React frontend. Leave this empty when the frontend and backend are served from the same host.
 
 The Vite development server also listens on port `3000`. If you plan to run the
 API server and frontend simultaneously, set `PORT` to a different value (for
@@ -72,6 +73,7 @@ This serves the content of the `dist` directory on the port configured in `vite.
 2. ערכו את הערכים:
    - `DATABASE_URL` – כתובת החיבור למסד הנתונים PostgreSQL.
    - `PORT` – מספר הפורט שעליו ירוץ שרת Express (ברירת מחדל 3000). אם אתם מפעילים גם את שרת Vite במקביל, מומלץ לבחור פורט אחר (למשל 3001).
+   - `VITE_API_URL` – כתובת הבסיס לבקשות API מצד ה-React. השאירו ריק אם השרת והפרונטאנד מוגשים מאותו מארח.
 
 ### התקנת חבילות
 
