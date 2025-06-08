@@ -1,28 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import useContentStore from '../store/contentStore';
 
 export default function FAQ() {
-  const faqs = [
-    {
-      question: "מהם זמני המשלוח?",
-      answer: "משלוח רגיל: 3-5 ימי עסקים. משלוח מהיר: עד 24 שעות."
-    },
-    {
-      question: "האם יש משלוח חינם?",
-      answer: "כן, בקנייה מעל 250 ₪ המשלוח חינם."
-    },
-    {
-      question: "מה מדיניות ההחזרות?",
-      answer: "ניתן להחזיר מוצרים עד 14 יום מיום הקבלה, כל עוד המוצר במצב חדש."
-    },
-    {
-      question: "האם ניתן לאסוף עצמאית מהחנות?",
-      answer: "כן, ניתן לאסוף מהחנות בשעות הפעילות ללא עלות משלוח."
-    },
-    {
-      question: "איך ניתן ליצור קשר?",
-      answer: "ניתן ליצור קשר בטלפון 050-418-1216 או במייל info@talpiot-books.co.il"
-    }
-  ];
+  const { getContent } = useContentStore();
+  const [faqs, setFaqs] = useState([]);
+
+  useEffect(() => {
+    getContent('faq').then((val) => {
+      try {
+        const parsed = JSON.parse(val || '[]');
+        setFaqs(Array.isArray(parsed) ? parsed : []);
+      } catch {
+        setFaqs([]);
+      }
+    });
+  }, [getContent]);
 
   return (
     <div className="max-w-4xl mx-auto p-8">

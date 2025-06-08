@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import useContentStore from '../store/contentStore';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -8,6 +9,18 @@ export default function Contact() {
     message: ''
   });
   const [status, setStatus] = useState('');
+  const { getContent } = useContentStore();
+  const [contactInfo, setContactInfo] = useState({ address: '', phone: '', email: '' });
+
+  useEffect(() => {
+    Promise.all([
+      getContent('address'),
+      getContent('phone_number'),
+      getContent('contact_email')
+    ]).then(([address, phone, email]) => {
+      setContactInfo({ address: address || '', phone: phone || '', email: email || '' });
+    });
+  }, [getContent]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,12 +49,12 @@ export default function Contact() {
           <div className="space-y-4 text-gray-700">
             <div>
               <h3 className="font-bold">כתובת:</h3>
-              <p>רחוב הרב קוק 12, ירושלים</p>
+              <p>{contactInfo.address}</p>
             </div>
-            
+
             <div>
               <h3 className="font-bold">טלפון:</h3>
-              <p>050-418-1216</p>
+              <p>{contactInfo.phone}</p>
             </div>
             
             <div>
@@ -52,7 +65,7 @@ export default function Contact() {
             
             <div>
               <h3 className="font-bold">דוא"ל:</h3>
-              <p>info@talpiot-books.co.il</p>
+              <p>{contactInfo.email}</p>
             </div>
           </div>
         </div>
