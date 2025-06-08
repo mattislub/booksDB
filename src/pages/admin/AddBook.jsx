@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, ArrowRight, Loader } from 'lucide-react';
-import { apiPost, apiPostFormData } from '../../lib/apiClient';
+import { apiPostFormData } from '../../lib/apiClient';
 import useCategoriesStore from '../../store/categoriesStore';
 import useBooksStore from '../../store/booksStore';
 
 export default function AddBook() {
-  const { categories } = useCategoriesStore();
+  const { categories, initialize: initCategories } = useCategoriesStore();
   const { addBook } = useBooksStore();
   const [mode, setMode] = useState('select');
   const [step, setStep] = useState(1);
@@ -14,6 +14,11 @@ export default function AddBook() {
   const [imagePreview, setImagePreview] = useState('');
   const [aiData, setAiData] = useState(null);
   const [selectedCategories, setSelectedCategories] = useState([]);
+
+  useEffect(() => {
+    console.log('Initializing categories');
+    initCategories();
+  }, [initCategories]);
   const [bookData, setBookData] = useState({
     title: '',
     author: '',
@@ -38,6 +43,7 @@ export default function AddBook() {
 
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
+    console.log('Selected image for upload', file);
 
     if (mode === 'ai') {
       setLoading(true);
@@ -46,6 +52,7 @@ export default function AddBook() {
         formData.append('image', file);
 
         const aiResponse = await apiPostFormData('/api/analyze-book-image', formData);
+        console.log('AI response', aiResponse);
 
         setAiData(aiResponse);
         setBookData(prev => ({
@@ -89,9 +96,12 @@ export default function AddBook() {
         categories: selectedCategories
       };
 
+      console.log('Submitting new book', finalBookData);
       const result = await addBook(finalBookData);
+      console.log('Add book result', result);
       if (!result.success) throw result.error;
 
+      console.log('Book added successfully');
       alert('הספר נוסף בהצלחה!');
       setBookData({
         title: '',
