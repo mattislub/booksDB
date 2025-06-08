@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, ChevronRight } from 'lucide-react';
 import { apiGet, apiPost } from '../../lib/apiClient';
-const supabase = {};
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
