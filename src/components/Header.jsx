@@ -1,14 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Phone, User, ShoppingCart, Search } from "lucide-react";
 import useAuthStore from '../store/authStore';
 import useCartStore from '../store/cartStore';
+import useContentStore from '../store/contentStore';
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { user, signOut } = useAuthStore();
   const { openCart, getItemsCount } = useCartStore();
+  const { getContent } = useContentStore();
+  const [phone, setPhone] = useState('');
+
+  useEffect(() => {
+    getContent('phone_number').then((val) => setPhone(val || ''));
+  }, [getContent]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -63,8 +70,8 @@ export default function Header() {
 
         <div className="flex items-center gap-6 text-lg">
           <div className="flex items-center gap-2 text-[#f9e79f]">
-            <Phone size={20} strokeWidth={1.5} className="rotate-90" /> 
-            <span>050-418-1216</span>
+            <Phone size={20} strokeWidth={1.5} className="rotate-90" />
+            <span>{phone}</span>
           </div>
           {user ? (
             <div className="flex items-center gap-4">

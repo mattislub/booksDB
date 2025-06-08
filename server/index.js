@@ -251,6 +251,34 @@ app.post('/api/categories/:id/delete', async (req, res) => {
   }
 });
 
+// ----- Site content routes -----
+app.get('/api/content/:key', async (req, res) => {
+  try {
+    const { key } = req.params;
+    const { rows } = await pool.query('SELECT value FROM site_content WHERE key=$1', [key]);
+    if (rows.length === 0) return res.json(null);
+    res.json(rows[0].value);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+app.post('/api/content/:key', async (req, res) => {
+  try {
+    const { key } = req.params;
+    const { value } = req.body;
+    await pool.query(
+      'INSERT INTO site_content(key, value) VALUES ($1,$2) ON CONFLICT(key) DO UPDATE SET value = EXCLUDED.value',
+      [key, value]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
