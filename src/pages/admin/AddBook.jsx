@@ -66,7 +66,7 @@ export default function AddBook() {
         setStep(2);
       } catch (error) {
         console.error('Error analyzing image:', error);
-        alert('שגיאה בזיהוי הספר. אנא נסה שוב או הזן את הפרטים ידנית.');
+        alert(`שגיאה בזיהוי הספר: ${error.message || error}. אנא נסה שוב או הזן את הפרטים ידנית.`);
       } finally {
         setLoading(false);
       }
@@ -126,7 +126,7 @@ export default function AddBook() {
       setStep(1);
     } catch (error) {
       console.error('Error adding book:', error);
-      alert('שגיאה בהוספת הספר. אנא נסה שוב.');
+      alert(`שגיאה בהוספת הספר: ${error.message || error}`);
     } finally {
       setLoading(false);
     }
@@ -279,11 +279,14 @@ export default function AddBook() {
                       type="checkbox"
                       checked={selectedCategories.includes(category.id)}
                       onChange={(e) => {
+                        let updated;
                         if (e.target.checked) {
-                          setSelectedCategories([...selectedCategories, category.id]);
+                          updated = [...selectedCategories, category.id];
                         } else {
-                          setSelectedCategories(selectedCategories.filter(id => id !== category.id));
+                          updated = selectedCategories.filter(id => id !== category.id);
                         }
+                        setSelectedCategories(updated);
+                        console.log('Selected categories', updated);
                       }}
                       className="form-checkbox h-5 w-5 text-[#112a55]"
                     />

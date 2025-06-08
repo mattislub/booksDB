@@ -12,6 +12,19 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Stub route for image analysis used on the admin AddBook page
+app.post('/api/analyze-book-image', (req, res) => {
+  let size = 0;
+  req.on('data', chunk => {
+    size += chunk.length;
+  });
+  req.on('end', () => {
+    console.log(`Received ${size} bytes for analyze-book-image`);
+    // Return empty metadata; real implementation can integrate Vision API
+    res.json({ title: '', author: '', description: '', isbn: '' });
+  });
+});
+
 // Get books with optional search and filter parameters
 app.get('/api/books', async (req, res) => {
   try {
@@ -60,6 +73,7 @@ app.get('/api/books/:id', async (req, res) => {
 // Create a book
 app.post('/api/books', async (req, res) => {
   try {
+    console.log('POST /api/books body', req.body);
     const {
       title,
       author,
@@ -112,6 +126,7 @@ app.post('/api/books', async (req, res) => {
     );
 
     const book = rows[0];
+    console.log('Inserted book', book);
 
     const categoryList = Array.isArray(categories)
       ? categories
@@ -138,6 +153,7 @@ app.post('/api/books', async (req, res) => {
 // Update a book
 app.post('/api/books/:id', async (req, res) => {
   try {
+    console.log('POST /api/books/:id body', req.body);
     const { id } = req.params;
     const {
       title,
@@ -206,6 +222,7 @@ app.post('/api/books/:id', async (req, res) => {
     if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
 
     const book = rows[0];
+    console.log('Updated book', book);
 
     const categoryList = Array.isArray(categories)
       ? categories
