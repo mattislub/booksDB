@@ -75,7 +75,9 @@ app.post('/api/books', async (req, res) => {
       weight,
       stock,
       is_new_arrival,
-      is_new_in_market
+      is_new_in_market,
+      categories,
+      category
     } = req.body;
 
     const { rows } = await pool.query(
@@ -106,7 +108,25 @@ app.post('/api/books', async (req, res) => {
         is_new_in_market
       ]
     );
-    res.json(rows[0]);
+
+    const book = rows[0];
+
+    const categoryList = Array.isArray(categories)
+      ? categories
+      : category
+      ? [category]
+      : [];
+    if (categoryList.length) {
+      const values = categoryList
+        .map((_, idx) => `($1,$${idx + 2})`)
+        .join(',');
+      await pool.query(
+        `INSERT INTO book_categories (book_id, category_id) VALUES ${values}`,
+        [book.id, ...categoryList]
+      );
+    }
+
+    res.json({ ...book, categories: categoryList });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Database error' });
@@ -134,7 +154,9 @@ app.post('/api/books/:id', async (req, res) => {
       weight,
       stock,
       is_new_arrival,
-      is_new_in_market
+      is_new_in_market,
+      categories,
+      category
     } = req.body;
 
     const { rows } = await pool.query(
@@ -180,7 +202,26 @@ app.post('/api/books/:id', async (req, res) => {
       ]
     );
     if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
-    res.json(rows[0]);
+
+    const book = rows[0];
+
+    const categoryList = Array.isArray(categories)
+      ? categories
+      : category
+      ? [category]
+      : [];
+    await pool.query('DELETE FROM book_categories WHERE book_id=$1', [id]);
+    if (categoryList.length) {
+      const values = categoryList
+        .map((_, idx) => `($1,$${idx + 2})`)
+        .join(',');
+      await pool.query(
+        `INSERT INTO book_categories (book_id, category_id) VALUES ${values}`,
+        [id, ...categoryList]
+      );
+    }
+
+    res.json({ ...book, categories: categoryList });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Database error' });
@@ -282,6 +323,40 @@ app.post('/api/content/:key', async (req, res) => {
 // ----- Setup route -----
 app.post('/api/setup', async (req, res) => {
   try {
+    await pool.query(`CREATE TABLE IF NOT EXISTS categories (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      parent_id INTEGER REFERENCES categories(id) ON DELETE SET NULL
+    )`);
+
+    await pool.query(`CREATE TABLE IF NOT EXISTS books (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      author TEXT,
+      description TEXT,
+      price NUMERIC(10,2),
+      image_url TEXT,
+      availability TEXT DEFAULT 'available',
+      isbn TEXT,
+      publisher TEXT,
+      publication_year INTEGER,
+      pages INTEGER,
+      language TEXT,
+      binding TEXT,
+      dimensions TEXT,
+      weight TEXT,
+      stock INTEGER DEFAULT 0,
+      is_new_arrival BOOLEAN DEFAULT FALSE,
+      is_new_in_market BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    await pool.query(`CREATE TABLE IF NOT EXISTS book_categories (
+      book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
+      category_id INTEGER REFERENCES categories(id) ON DELETE CASCADE,
+      PRIMARY KEY (book_id, category_id)
+    )`);
     await pool.query(`CREATE TABLE IF NOT EXISTS orders (
       id SERIAL PRIMARY KEY,
       user_id INTEGER,
