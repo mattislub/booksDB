@@ -40,7 +40,7 @@ curl -X POST http://localhost:3000/api/setup
 ```
 
 This route creates the `books`, `categories`, `book_categories`, `orders`, `order_items`,
-`promotions`, `email_subscribers`, `settings` and `statistics` tables if they do not exist.
+`promotions`, `email_subscribers`, `settings`, `statistics` and `site_content` tables if they do not exist.
 
 ## Building and Serving the React Frontend
 

@@ -522,6 +522,10 @@ app.post('/api/content/:key', async (req, res) => {
 // ----- Setup route -----
 app.post('/api/setup', async (req, res) => {
   try {
+    await pool.query(`CREATE TABLE IF NOT EXISTS site_content (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )`);
     await pool.query(`CREATE TABLE IF NOT EXISTS categories (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
