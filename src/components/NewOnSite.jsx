@@ -122,7 +122,7 @@ export const NewOnSite = () => {
               <img
                 src={book.image_url || `https://via.placeholder.com/300x400.png?text=${encodeURIComponent(book.title)}`}
                 alt={book.title}
-                className="w-full h-32 object-cover rounded-lg shadow group-hover:opacity-90 transition-opacity"
+                className="w-full h-32 object-contain bg-white rounded-lg shadow group-hover:opacity-90 transition-opacity"
               />
               <p className="text-center mt-3 font-serif text-lg text-[#2c1810]">{book.title}</p>
               <p className="text-center text-[#8b6f1f] font-bold mt-1">{book.price} ₪</p>

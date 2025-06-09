@@ -41,7 +41,7 @@ export default function Catalog() {
               <img
                 src={`https://via.placeholder.com/300x400.png?text=${encodeURIComponent(book.title)}`}
                 alt={book.title}
-                className="w-full h-64 object-cover rounded-t-2xl"
+                className="w-full h-[300px] object-contain bg-white rounded-t-2xl"
               />
             )}
 

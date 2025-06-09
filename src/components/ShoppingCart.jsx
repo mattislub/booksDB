@@ -43,7 +43,7 @@ export default function ShoppingCart() {
                 <img
                   src={item.image_url || `https://via.placeholder.com/100x150.png?text=${encodeURIComponent(item.title)}`}
                   alt={item.title}
-                  className="w-20 h-28 object-cover rounded"
+                  className="w-20 h-28 object-contain bg-white rounded"
                 />
                 <div className="flex-1">
                   <div className="flex justify-between">

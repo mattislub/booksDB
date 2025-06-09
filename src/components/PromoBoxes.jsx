@@ -10,7 +10,7 @@ export default function PromoBoxes() {
           <img 
             src="https://images.pexels.com/photos/159866/books-book-pages-read-literature-159866.jpeg" 
             alt="מבצע מיוחד"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
             <div className="text-white">
@@ -38,7 +38,7 @@ export default function PromoBoxes() {
           <img 
             src="https://images.pexels.com/photos/2041540/pexels-photo-2041540.jpeg" 
             alt="ספרים חדשים"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
             <div className="text-white">
