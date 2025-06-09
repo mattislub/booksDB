@@ -44,7 +44,7 @@ function CategoryBooks({ books, categoryName, onClose }) {
                   <img
                     src={book.image_url || `https://via.placeholder.com/100x150.png?text=${encodeURIComponent(book.title)}`}
                     alt={book.title}
-                    className="w-24 h-32 object-cover rounded"
+                    className="w-24 h-32 object-contain bg-white rounded"
                   />
                   <div>
                     <h4 className="font-bold text-[#112a55]">{book.title}</h4>
@@ -180,7 +180,7 @@ export default function CategoriesView() {
                 <img
                   src={book.image_url || `https://via.placeholder.com/100x150.png?text=${encodeURIComponent(book.title)}`}
                   alt={book.title}
-                  className="w-24 h-32 object-cover rounded"
+                  className="w-24 h-32 object-contain bg-white rounded"
                 />
                 <div>
                   <h3 className="font-bold text-[#112a55]">{book.title}</h3>

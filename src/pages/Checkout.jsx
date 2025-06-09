@@ -198,7 +198,7 @@ export default function Checkout() {
                 <img
                   src={item.image_url || `https://via.placeholder.com/100x150.png?text=${encodeURIComponent(item.title)}`}
                   alt={item.title}
-                  className="w-20 h-28 object-cover rounded"
+                  className="w-20 h-28 object-contain bg-white rounded"
                 />
                 <div className="flex-1">
                   <h3 className="font-bold text-[#112a55]">{item.title}</h3>
