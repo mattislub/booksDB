@@ -100,6 +100,35 @@ app.post('/api/books', async (req, res) => {
       category
     } = req.body;
 
+    const parseIntOrNull = (val) => {
+      const n = parseInt(val, 10);
+      return isNaN(n) ? null : n;
+    };
+    const parseFloatOrNull = (val) => {
+      const n = parseFloat(val);
+      return isNaN(n) ? null : n;
+    };
+
+    const sanitized = {
+      title,
+      author: author || null,
+      description: description || null,
+      price: parseFloatOrNull(price),
+      image_url: image_url || null,
+      availability: availability || 'available',
+      isbn: isbn || null,
+      publisher: publisher || null,
+      publication_year: parseIntOrNull(publication_year),
+      pages: parseIntOrNull(pages),
+      language: language || null,
+      binding: binding || null,
+      dimensions: dimensions || null,
+      weight: weight || null,
+      stock: parseIntOrNull(stock),
+      is_new_arrival: Boolean(is_new_arrival),
+      is_new_in_market: Boolean(is_new_in_market)
+    };
+
     const { rows } = await pool.query(
       `INSERT INTO books (
         title, author, description, price, image_url, availability,
@@ -109,23 +138,23 @@ app.post('/api/books', async (req, res) => {
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17
       ) RETURNING *`,
       [
-        title,
-        author,
-        description,
-        price,
-        image_url,
-        availability,
-        isbn,
-        publisher,
-        publication_year,
-        pages,
-        language,
-        binding,
-        dimensions,
-        weight,
-        stock,
-        is_new_arrival,
-        is_new_in_market
+        sanitized.title,
+        sanitized.author,
+        sanitized.description,
+        sanitized.price,
+        sanitized.image_url,
+        sanitized.availability,
+        sanitized.isbn,
+        sanitized.publisher,
+        sanitized.publication_year,
+        sanitized.pages,
+        sanitized.language,
+        sanitized.binding,
+        sanitized.dimensions,
+        sanitized.weight,
+        sanitized.stock,
+        sanitized.is_new_arrival,
+        sanitized.is_new_in_market
       ]
     );
 
@@ -181,6 +210,35 @@ app.post('/api/books/:id', async (req, res) => {
       category
     } = req.body;
 
+    const parseIntOrNull = (val) => {
+      const n = parseInt(val, 10);
+      return isNaN(n) ? null : n;
+    };
+    const parseFloatOrNull = (val) => {
+      const n = parseFloat(val);
+      return isNaN(n) ? null : n;
+    };
+
+    const sanitized = {
+      title,
+      author: author || null,
+      description: description || null,
+      price: parseFloatOrNull(price),
+      image_url: image_url || null,
+      availability: availability || 'available',
+      isbn: isbn || null,
+      publisher: publisher || null,
+      publication_year: parseIntOrNull(publication_year),
+      pages: parseIntOrNull(pages),
+      language: language || null,
+      binding: binding || null,
+      dimensions: dimensions || null,
+      weight: weight || null,
+      stock: parseIntOrNull(stock),
+      is_new_arrival: Boolean(is_new_arrival),
+      is_new_in_market: Boolean(is_new_in_market)
+    };
+
     const { rows } = await pool.query(
       `UPDATE books SET
         title=$1,
@@ -203,23 +261,23 @@ app.post('/api/books/:id', async (req, res) => {
         updated_at=NOW()
       WHERE id=$18 RETURNING *`,
       [
-        title,
-        author,
-        description,
-        price,
-        image_url,
-        availability,
-        isbn,
-        publisher,
-        publication_year,
-        pages,
-        language,
-        binding,
-        dimensions,
-        weight,
-        stock,
-        is_new_arrival,
-        is_new_in_market,
+        sanitized.title,
+        sanitized.author,
+        sanitized.description,
+        sanitized.price,
+        sanitized.image_url,
+        sanitized.availability,
+        sanitized.isbn,
+        sanitized.publisher,
+        sanitized.publication_year,
+        sanitized.pages,
+        sanitized.language,
+        sanitized.binding,
+        sanitized.dimensions,
+        sanitized.weight,
+        sanitized.stock,
+        sanitized.is_new_arrival,
+        sanitized.is_new_in_market,
         id
       ]
     );
