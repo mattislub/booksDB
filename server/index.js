@@ -3,11 +3,15 @@ import pkg from 'pg';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import crypto from 'crypto';
+import vision from '@google-cloud/vision';
+import OpenAI from 'openai';
 
 dotenv.config();
 
 const { Pool } = pkg;
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const visionClient = new vision.ImageAnnotatorClient();
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const app = express();
 const corsOptions = { origin: process.env.CORS_ORIGIN || '*' };
@@ -37,18 +41,54 @@ function getUserFromRequest(req) {
   return users.find(u => u.id === userId);
 }
 
-// Stub route for image analysis used on the admin AddBook page
-app.post('/api/analyze-book-image', (req, res) => {
-  let size = 0;
-  req.on('data', chunk => {
-    size += chunk.length;
-  });
-  req.on('end', () => {
-    console.log(`Received ${size} bytes for analyze-book-image`);
-    // Return empty metadata; real implementation can integrate Vision API
-    res.json({ title: '', author: '', description: '', isbn: '' });
-  });
-});
+// Analyze uploaded book cover image using Google Vision and OpenAI
+app.post(
+  '/api/analyze-book-image',
+  express.raw({ type: 'multipart/form-data', limit: '10mb' }),
+  async (req, res) => {
+    try {
+      // Parse multipart form data manually to extract the image buffer
+      const boundaryMatch = req.headers['content-type']?.match(/boundary=(.*)$/);
+      if (!boundaryMatch) {
+        return res.status(400).json({ error: 'Invalid form data' });
+      }
+      const boundary = Buffer.from(`--${boundaryMatch[1]}`);
+      const body = req.body;
+      let start = body.indexOf(boundary) + boundary.length;
+      start = body.indexOf('\r\n\r\n', start) + 4;
+      const end = body.indexOf(boundary, start);
+      const imageBuffer = body.slice(start, end - 2); // remove trailing \r\n
+
+      console.log(`Received ${imageBuffer.length} bytes for analyze-book-image`);
+
+      // Use Google Vision to detect text in the image
+      const [visionResult] = await visionClient.textDetection(imageBuffer);
+      const ocrText = visionResult.fullTextAnnotation?.text || '';
+
+      // Use OpenAI to extract metadata
+      const prompt =
+        'Extract the book title, author, description and ISBN from the text ' +
+        'below. Respond in JSON with keys "title", "author", "description", "isbn".\n' +
+        ocrText;
+      const chat = await openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0,
+      });
+      let metadata = { title: '', author: '', description: '', isbn: '' };
+      try {
+        metadata = JSON.parse(chat.choices[0].message.content);
+      } catch (e) {
+        console.error('Failed to parse OpenAI response:', chat.choices[0].message.content);
+      }
+
+      res.json(metadata);
+    } catch (err) {
+      console.error('analyze-book-image error', err);
+      res.status(500).json({ error: 'Failed to analyze image' });
+    }
+  }
+);
 
 // ----- Authentication routes -----
 app.get('/api/auth/user', (req, res) => {
