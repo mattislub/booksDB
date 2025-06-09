@@ -8,8 +8,8 @@ Create a `.env` file (you can copy `.env.example`) and set the following variabl
 
 - `DATABASE_URL` – PostgreSQL connection string used by the API server.
 - `PORT` – Port for the Express server (defaults to `3000` if not set).
-- `OPENAI_API_KEY` – API key used for the GPT integration that extracts book
-  details from uploaded cover images.
+- `OPENAI_API_KEY` – API key with access to GPT‑4 Vision used to extract book
+  details directly from uploaded cover images.
 
 The Vite development server also listens on port `3000`. If you plan to run the
 API server and frontend simultaneously, set `PORT` to a different value (for
