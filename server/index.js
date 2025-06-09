@@ -3,14 +3,12 @@ import pkg from 'pg';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import crypto from 'crypto';
-import vision from '@google-cloud/vision';
 import OpenAI from 'openai';
 
 dotenv.config();
 
 const { Pool } = pkg;
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const visionClient = new vision.ImageAnnotatorClient();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const app = express();
@@ -41,7 +39,7 @@ function getUserFromRequest(req) {
   return users.find(u => u.id === userId);
 }
 
-// Analyze uploaded book cover image using Google Vision and OpenAI
+// Analyze uploaded book cover image using GPT-4 Vision
 app.post(
   '/api/analyze-book-image',
   express.raw({ type: 'multipart/form-data', limit: '10mb' }),
@@ -61,18 +59,28 @@ app.post(
 
       console.log(`Received ${imageBuffer.length} bytes for analyze-book-image`);
 
-      // Use Google Vision to detect text in the image
-      const [visionResult] = await visionClient.textDetection(imageBuffer);
-      const ocrText = visionResult.fullTextAnnotation?.text || '';
-
-      // Use OpenAI to extract metadata
-      const prompt =
-        'Extract the book title, author, description and ISBN from the text ' +
-        'below. Respond in JSON with keys "title", "author", "description", "isbn".\n' +
-        ocrText;
+      // Use GPT-4 Vision to read the cover and extract metadata
+      const imageBase64 = imageBuffer.toString('base64');
+      const messages = [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text:
+                'Extract the book title, author, description and ISBN from this book cover. ' +
+                'Respond in JSON with keys "title", "author", "description", "isbn".',
+            },
+            {
+              type: 'image_url',
+              image_url: `data:image/jpeg;base64,${imageBase64}`,
+            },
+          ],
+        },
+      ];
       const chat = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: prompt }],
+        model: 'gpt-4-vision-preview',
+        messages,
         temperature: 0,
       });
       let metadata = { title: '', author: '', description: '', isbn: '' };
