@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, Link } from "react-router-dom";
 
-const API_BASE = "http://sr.70-60.com:3010";
+const API_BASE = "https://api.talpiot-books.com";
 
 export default function BookDetails() {
   const { id } = useParams();
