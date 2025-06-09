@@ -38,11 +38,14 @@ The server reads the environment variables above and listens on `PORT`.
 To create the tables required by the API (books, categories and other admin features) run:
 
 ```bash
-curl -X POST http://localhost:3000/api/setup
+curl -X POST http://localhost:$PORT/api/setup
 ```
 
-This route creates the `books`, `categories`, `book_categories`, `orders`, `order_items`,
-`promotions`, `email_subscribers`, `settings`, `statistics` and `site_content` tables if they do not exist.
+This uses the port configured by the `PORT` variable in your `.env` file. The server
+defaults to port `3000` if `PORT` is not set. The route creates the `books`,
+`categories`, `book_categories`, `orders`, `order_items`, `promotions`,
+`email_subscribers`, `settings`, `statistics` and `site_content` tables if they
+do not exist.
 
 ## Building and Serving the React Frontend
 
