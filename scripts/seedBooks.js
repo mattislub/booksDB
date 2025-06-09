@@ -86,7 +86,7 @@ const books = [
 (async () => {
   for (const book of books) {
     try {
-      const res = await fetch('http://sr.70-60.com:3010/api/books', {
+      const res = await fetch('https://api.talpiot-books.com/api/books', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(book)
