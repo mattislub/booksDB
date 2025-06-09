@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { apiGet } from "../lib/apiClient";
 import { useParams, Link } from "react-router-dom";
 
-const API_BASE = "http://sr.70-60.com:3010";
+const API_BASE = import.meta.env.VITE_API_URL || "";
 
 export default function BookDetails() {
   const { id } = useParams();
@@ -14,8 +14,8 @@ export default function BookDetails() {
     const fetchBook = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${API_BASE}/api/books/${id}`);
-        setBook(res.data);
+        const data = await apiGet(`/api/books/${id}`);
+        setBook(data);
       } catch (err) {
         setError("שגיאה בטעינת הספר");
         console.error("שגיאה בשליפת ספר:", err);

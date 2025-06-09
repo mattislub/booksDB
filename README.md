@@ -8,6 +8,7 @@ Create a `.env` file (you can copy `.env.example`) and set the following variabl
 
 - `DATABASE_URL` – PostgreSQL connection string used by the API server.
 - `PORT` – Port for the Express server (defaults to `3000` if not set).
+- `VITE_API_URL` – Base URL for the API when running the frontend (e.g. `https://api.talpiot-books.com`).
 
 The Vite development server also listens on port `3000`. If you plan to run the
 API server and frontend simultaneously, set `PORT` to a different value (for
@@ -36,7 +37,7 @@ The server reads the environment variables above and listens on `PORT`.
 To create the tables required by the API (books, categories and other admin features) run:
 
 ```bash
-curl -X POST http://localhost:3000/api/setup
+curl -X POST https://api.talpiot-books.com/api/setup
 ```
 
 This route creates the `books`, `categories`, `book_categories`, `orders`, `order_items`,
@@ -72,6 +73,7 @@ This serves the content of the `dist` directory on the port configured in `vite.
 2. ערכו את הערכים:
    - `DATABASE_URL` – כתובת החיבור למסד הנתונים PostgreSQL.
    - `PORT` – מספר הפורט שעליו ירוץ שרת Express (ברירת מחדל 3000). אם אתם מפעילים גם את שרת Vite במקביל, מומלץ לבחור פורט אחר (למשל 3001).
+   - `VITE_API_URL` – כתובת הבסיס ל־API בעת הרצת הפרונטאנד (לדוגמה `https://api.talpiot-books.com`).
 
 ### התקנת חבילות
 
