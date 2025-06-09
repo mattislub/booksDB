@@ -1,6 +1,7 @@
 import express from 'express';
 import pkg from 'pg';
 import dotenv from 'dotenv';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -8,6 +9,7 @@ const { Pool } = pkg;
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 const app = express();
+app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 // Increase payload limits to allow larger JSON bodies
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
