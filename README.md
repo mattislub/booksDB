@@ -36,7 +36,7 @@ The server reads the environment variables above and listens on `PORT`.
 To create the tables required by the API (books, categories and other admin features) run:
 
 ```bash
-curl -X POST http://localhost:3000/api/setup
+curl -X POST https://api.talpiot-books.com/api/setup
 ```
 
 This route creates the `books`, `categories`, `book_categories`, `orders`, `order_items`,
