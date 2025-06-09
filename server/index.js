@@ -9,7 +9,9 @@ const { Pool } = pkg;
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 const app = express();
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
+const corsOptions = { origin: process.env.CORS_ORIGIN || '*' };
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 // Increase payload limits to allow larger JSON bodies
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
