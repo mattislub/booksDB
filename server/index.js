@@ -19,8 +19,7 @@ app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// ----- Simple in-memory auth/session handling -----
-const users = [];
+// ----- Simple session handling -----
 const sessions = {};
 
 function parseCookies(header = '') {
@@ -32,11 +31,13 @@ function parseCookies(header = '') {
   return cookies;
 }
 
-function getUserFromRequest(req) {
+async function getUserFromRequest(req) {
   const cookies = parseCookies(req.headers.cookie || '');
   const sessionId = cookies.session_id;
   const userId = sessions[sessionId];
-  return users.find(u => u.id === userId);
+  if (!userId) return null;
+  const { rows } = await pool.query('SELECT id, email FROM users WHERE id=$1', [userId]);
+  return rows[0] || null;
 }
 
 // Analyze uploaded book cover image using GPT-4 Vision
@@ -99,36 +100,57 @@ app.post(
 );
 
 // ----- Authentication routes -----
-app.get('/api/auth/user', (req, res) => {
-  const user = getUserFromRequest(req);
+app.get('/api/auth/user', async (req, res) => {
+  const user = await getUserFromRequest(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
   res.json({ id: user.id, email: user.email });
 });
 
-app.post('/api/auth/register', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Missing email or password' });
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Missing email or password' });
+    }
+
+    const { rows: existing } = await pool.query('SELECT id FROM users WHERE email=$1', [email]);
+    if (existing.length) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+
+    const { rows } = await pool.query(
+      'INSERT INTO users (email, password) VALUES ($1,$2) RETURNING id, email',
+      [email, password]
+    );
+    const user = rows[0];
+
+    const sid = crypto.randomUUID();
+    sessions[sid] = user.id;
+    res.cookie('session_id', sid, { httpOnly: true });
+    res.json({ user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
   }
-  if (users.some(u => u.email === email)) {
-    return res.status(400).json({ error: 'User already exists' });
-  }
-  const user = { id: users.length + 1, email, password };
-  users.push(user);
-  const sid = crypto.randomUUID();
-  sessions[sid] = user.id;
-  res.cookie('session_id', sid, { httpOnly: true });
-  res.json({ user: { id: user.id, email: user.email } });
 });
 
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
-  const user = users.find(u => u.email === email && u.password === password);
-  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-  const sid = crypto.randomUUID();
-  sessions[sid] = user.id;
-  res.cookie('session_id', sid, { httpOnly: true });
-  res.json({ user: { id: user.id, email: user.email } });
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const { rows } = await pool.query(
+      'SELECT id, email FROM users WHERE email=$1 AND password=$2',
+      [email, password]
+    );
+    const user = rows[0];
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+    const sid = crypto.randomUUID();
+    sessions[sid] = user.id;
+    res.cookie('session_id', sid, { httpOnly: true });
+    res.json({ user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
 });
 
 app.post('/api/auth/logout', (req, res) => {
@@ -137,6 +159,46 @@ app.post('/api/auth/logout', (req, res) => {
   delete sessions[sid];
   res.clearCookie('session_id');
   res.json({ success: true });
+});
+
+// ----- User profile routes -----
+app.get('/api/profile', async (req, res) => {
+  try {
+    const user = await getUserFromRequest(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { rows } = await pool.query(
+      'SELECT name, phone, address FROM profiles WHERE user_id=$1',
+      [user.id]
+    );
+    if (rows.length === 0) return res.json(null);
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+app.post('/api/profile', async (req, res) => {
+  try {
+    const user = await getUserFromRequest(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { name, phone, address } = req.body;
+    await pool.query(
+      `INSERT INTO profiles (user_id, name, phone, address)
+       VALUES ($1,$2,$3,$4)
+       ON CONFLICT (user_id) DO UPDATE SET
+         name=EXCLUDED.name,
+         phone=EXCLUDED.phone,
+         address=EXCLUDED.address`,
+      [user.id, name || null, phone || null, address || null]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
 });
 
 // Get books with optional search and filter parameters
@@ -486,7 +548,7 @@ app.post('/api/categories/:id/delete', async (req, res) => {
 // ----- Orders routes -----
 app.post('/api/orders', async (req, res) => {
   try {
-    const user = getUserFromRequest(req);
+    const user = await getUserFromRequest(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
     const { items = [], total, shipping_address, phone, notes, email, name } = req.body;
@@ -514,7 +576,7 @@ app.post('/api/orders', async (req, res) => {
 
 app.get('/api/orders', async (req, res) => {
   try {
-    const user = getUserFromRequest(req);
+    const user = await getUserFromRequest(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
     const { rows: orders } = await pool.query(
@@ -570,6 +632,19 @@ app.post('/api/content/:key', async (req, res) => {
 // ----- Setup route -----
 app.post('/api/setup', async (req, res) => {
   try {
+    await pool.query(`CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL
+    )`);
+
+    await pool.query(`CREATE TABLE IF NOT EXISTS profiles (
+      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT,
+      phone TEXT,
+      address TEXT
+    )`);
+
     await pool.query(`CREATE TABLE IF NOT EXISTS site_content (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
