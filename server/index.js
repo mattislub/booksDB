@@ -2,6 +2,7 @@ import express from 'express';
 import pkg from 'pg';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import crypto from 'crypto';
 
 dotenv.config();
 
@@ -16,6 +17,26 @@ app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// ----- Simple in-memory auth/session handling -----
+const users = [];
+const sessions = {};
+
+function parseCookies(header = '') {
+  const cookies = {};
+  header.split(';').forEach(c => {
+    const [k, v] = c.trim().split('=');
+    if (k) cookies[k] = decodeURIComponent(v);
+  });
+  return cookies;
+}
+
+function getUserFromRequest(req) {
+  const cookies = parseCookies(req.headers.cookie || '');
+  const sessionId = cookies.session_id;
+  const userId = sessions[sessionId];
+  return users.find(u => u.id === userId);
+}
+
 // Stub route for image analysis used on the admin AddBook page
 app.post('/api/analyze-book-image', (req, res) => {
   let size = 0;
@@ -27,6 +48,47 @@ app.post('/api/analyze-book-image', (req, res) => {
     // Return empty metadata; real implementation can integrate Vision API
     res.json({ title: '', author: '', description: '', isbn: '' });
   });
+});
+
+// ----- Authentication routes -----
+app.get('/api/auth/user', (req, res) => {
+  const user = getUserFromRequest(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  res.json({ id: user.id, email: user.email });
+});
+
+app.post('/api/auth/register', (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Missing email or password' });
+  }
+  if (users.some(u => u.email === email)) {
+    return res.status(400).json({ error: 'User already exists' });
+  }
+  const user = { id: users.length + 1, email, password };
+  users.push(user);
+  const sid = crypto.randomUUID();
+  sessions[sid] = user.id;
+  res.cookie('session_id', sid, { httpOnly: true });
+  res.json({ user: { id: user.id, email: user.email } });
+});
+
+app.post('/api/auth/login', (req, res) => {
+  const { email, password } = req.body;
+  const user = users.find(u => u.email === email && u.password === password);
+  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+  const sid = crypto.randomUUID();
+  sessions[sid] = user.id;
+  res.cookie('session_id', sid, { httpOnly: true });
+  res.json({ user: { id: user.id, email: user.email } });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  const cookies = parseCookies(req.headers.cookie || '');
+  const sid = cookies.session_id;
+  delete sessions[sid];
+  res.clearCookie('session_id');
+  res.json({ success: true });
 });
 
 // Get books with optional search and filter parameters
@@ -373,6 +435,62 @@ app.post('/api/categories/:id/delete', async (req, res) => {
   }
 });
 
+// ----- Orders routes -----
+app.post('/api/orders', async (req, res) => {
+  try {
+    const user = getUserFromRequest(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { items = [], total, shipping_address, phone, notes, email, name } = req.body;
+
+    const { rows } = await pool.query(
+      `INSERT INTO orders (user_id, total, name, email, phone, shipping_address, notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      [user.id, total, name || null, email || null, phone || null, shipping_address || null, notes || null]
+    );
+    const order = rows[0];
+
+    for (const item of items) {
+      await pool.query(
+        'INSERT INTO order_items (order_id, book_id, quantity, price) VALUES ($1,$2,$3,$4)',
+        [order.id, item.id, item.quantity, item.price]
+      );
+    }
+
+    res.json(order);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+app.get('/api/orders', async (req, res) => {
+  try {
+    const user = getUserFromRequest(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { rows: orders } = await pool.query(
+      'SELECT * FROM orders WHERE user_id=$1 ORDER BY created_at DESC',
+      [user.id]
+    );
+
+    for (const order of orders) {
+      const { rows: items } = await pool.query(
+        `SELECT oi.*, b.title FROM order_items oi
+         JOIN books b ON oi.book_id = b.id
+         WHERE oi.order_id=$1`,
+        [order.id]
+      );
+      order.order_items = items;
+    }
+
+    res.json(orders);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
 // ----- Site content routes -----
 app.get('/api/content/:key', async (req, res) => {
   try {
@@ -443,6 +561,11 @@ app.post('/api/setup', async (req, res) => {
       user_id INTEGER,
       total NUMERIC(10,2) NOT NULL,
       status TEXT DEFAULT 'pending',
+      name TEXT,
+      email TEXT,
+      phone TEXT,
+      shipping_address TEXT,
+      notes TEXT,
       created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     )`);
 
