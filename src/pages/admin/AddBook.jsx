@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, ArrowRight, Loader } from 'lucide-react';
+import { Upload, ArrowRight, Loader, Plus } from 'lucide-react';
 import { apiPostFormData } from '../../lib/apiClient';
 import useCategoriesStore from '../../store/categoriesStore';
 import useBooksStore from '../../store/booksStore';
 
 export default function AddBook() {
-  const { categories, initialize: initCategories } = useCategoriesStore();
+  const { categories, initialize: initCategories, addCategory } = useCategoriesStore();
   const { addBook } = useBooksStore();
   const [mode, setMode] = useState('select');
   const [step, setStep] = useState(1);
@@ -14,6 +14,7 @@ export default function AddBook() {
   const [imagePreview, setImagePreview] = useState('');
   const [aiData, setAiData] = useState(null);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [newCategory, setNewCategory] = useState('');
 
   useEffect(() => {
     console.log('Initializing categories');
@@ -272,7 +273,38 @@ export default function AddBook() {
 
             <div>
               <label className="block text-gray-700 mb-1">קטגוריות *</label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-2 mb-3">
+                <input
+                  type="text"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  placeholder="הזן קטגוריה חדשה"
+                  className="flex-1 border rounded-lg p-2"
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!newCategory.trim()) return;
+                    try {
+                      const result = await addCategory({ name: newCategory.trim() });
+                      if (result.success) {
+                        setNewCategory('');
+                        setSelectedCategories((prev) => [...prev, result.data.id]);
+                      } else {
+                        throw result.error;
+                      }
+                    } catch (err) {
+                      console.error('שגיאה בהוספת קטגוריה:', err);
+                      alert('אירעה שגיאה. נסה שוב.');
+                    }
+                  }}
+                  className="bg-[#112a55] text-white px-4 py-2 rounded-lg hover:bg-[#1a3c70]"
+                >
+                  <Plus size={18} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border p-2 rounded">
                 {categories.map(category => (
                   <label key={category.id} className="flex items-center gap-2 p-2 border rounded hover:bg-gray-50">
                     <input
