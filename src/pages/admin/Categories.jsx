@@ -20,7 +20,8 @@ export default function Categories() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      setCategories([]);
+      const data = await apiGet('/api/categories');
+      setCategories(data || []);
     } catch (err) {
       console.error('Error fetching categories:', err);
       setError('שגיאה בטעינת הקטגוריות');
@@ -33,9 +34,9 @@ export default function Categories() {
     e.preventDefault();
     try {
       if (selectedCategory) {
-        
+        await apiPost(`/api/categories/${selectedCategory.id}`, formData);
       } else {
-
+        await apiPost('/api/categories', formData);
       }
 
       setIsModalOpen(false);
@@ -61,6 +62,7 @@ export default function Categories() {
     if (!window.confirm('האם אתה בטוח שברצונך למחוק קטגוריה זו?')) return;
 
     try {
+      await apiPost(`/api/categories/${id}/delete`, {});
       fetchCategories();
     } catch (err) {
       console.error('Error deleting category:', err);
