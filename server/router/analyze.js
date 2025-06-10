@@ -1,15 +1,28 @@
 import express from 'express';
+import dotenv from 'dotenv';
 import OpenAI from 'openai';
+
+dotenv.config();
 
 const router = express.Router();
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let openai = null;
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+} else {
+  console.warn('OPENAI_API_KEY is not set. Book image analysis is disabled.');
+}
 
 router.post(
   '/api/analyze-book-image',
   express.raw({ type: 'multipart/form-data', limit: '10mb' }),
   async (req, res) => {
     try {
+      if (!openai) {
+        return res
+          .status(503)
+          .json({ error: 'Image analysis is disabled. Missing OpenAI API key.' });
+      }
       const boundaryMatch = req.headers['content-type']?.match(/boundary=(.*)$/);
       if (!boundaryMatch) {
         return res.status(400).json({ error: 'Invalid form data' });

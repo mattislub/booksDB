@@ -11,6 +11,9 @@ Create a `.env` file (you can copy `.env.example`) and set the following variabl
 - `OPENAI_API_KEY` – API key with access to GPT‑4 Vision used to extract book
   details directly from uploaded cover images.
 
+If `OPENAI_API_KEY` is not provided, the `/api/analyze-book-image` endpoint is
+disabled and requests to it will return an error.
+
 The Vite development server also listens on port `3000`. If you plan to run the
 API server and frontend simultaneously, set `PORT` to a different value (for
 example `3001`) in your `.env` file or adjust the port in `vite.config.js`.
