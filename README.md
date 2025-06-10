@@ -24,6 +24,10 @@ Install the JavaScript dependencies for both the frontend and server:
 npm install
 ```
 
+This project now uses `bcrypt` to securely hash passwords. If you're pulling
+these changes into an existing checkout, run `npm install` again to make sure
+the new dependency is installed.
+
 ## Running the Express Server
 
 Start the API server with:

@@ -1,5 +1,6 @@
 import express from 'express';
 import crypto from 'crypto';
+import bcrypt from 'bcrypt';
 import pool from '../db.js';
 
 export const sessions = {};
@@ -42,9 +43,11 @@ router.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'User already exists' });
     }
 
+    const hashed = await bcrypt.hash(password, 10);
+
     const { rows } = await pool.query(
       'INSERT INTO users (email, password) VALUES ($1,$2) RETURNING id, email',
-      [email, password]
+      [email, hashed]
     );
     const user = rows[0];
 
@@ -62,15 +65,18 @@ router.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const { rows } = await pool.query(
-      'SELECT id, email FROM users WHERE email=$1 AND password=$2',
-      [email, password]
+      'SELECT id, email, password FROM users WHERE email=$1',
+      [email]
     );
     const user = rows[0];
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
     const sid = crypto.randomUUID();
     sessions[sid] = user.id;
     res.cookie('session_id', sid, { httpOnly: true });
-    res.json({ user });
+    res.json({ user: { id: user.id, email: user.email } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Database error' });
