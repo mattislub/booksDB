@@ -1,14 +1,29 @@
 import express from 'express';
+import dotenv from 'dotenv';
 import OpenAI from 'openai';
+
+dotenv.config();
 
 const router = express.Router();
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let openai = null;
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+} else {
+  console.warn(
+    'OPENAI_API_KEY not set. /api/analyze-book-image endpoint will return 503.'
+  );
+}
 
 router.post(
   '/api/analyze-book-image',
   express.raw({ type: 'multipart/form-data', limit: '10mb' }),
   async (req, res) => {
+    if (!openai) {
+      return res
+        .status(503)
+        .json({ error: 'OpenAI API key not configured' });
+    }
     try {
       const boundaryMatch = req.headers['content-type']?.match(/boundary=(.*)$/);
       if (!boundaryMatch) {
