@@ -23,6 +23,9 @@ Install the JavaScript dependencies for both the frontend and server:
 npm install
 ```
 
+This will also install the new `bcrypt` package used to securely hash user
+passwords on registration.
+
 ## Running the Express Server
 
 Start the API server with:
@@ -85,6 +88,8 @@ This serves the content of the `dist` directory on the port configured in `vite.
 ```bash
 npm install
 ```
+
+הפקודה תתקין גם את החבילה `bcrypt` המשמשת להצפנת סיסמאות משתמשים.
 
 ### הפעלת שרת Express
 
