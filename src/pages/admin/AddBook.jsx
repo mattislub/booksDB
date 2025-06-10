@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, ArrowRight, Loader, Plus } from 'lucide-react';
 import { apiPostFormData } from '../../lib/apiClient';
+import { compressImage } from '../../lib/imageUtils';
 import useCategoriesStore from '../../store/categoriesStore';
 import useBooksStore from '../../store/booksStore';
 
@@ -20,6 +21,12 @@ export default function AddBook() {
     console.log('Initializing categories');
     initCategories();
   }, [initCategories]);
+
+  useEffect(() => {
+    if (mode === 'ai' && step === 2 && categories.length === 0) {
+      initCategories();
+    }
+  }, [mode, step, categories.length, initCategories]);
   const [bookData, setBookData] = useState({
     title: '',
     author: '',
@@ -42,9 +49,10 @@ export default function AddBook() {
     const file = e.target.files[0];
     if (!file) return;
 
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-    console.log('Selected image for upload', file);
+    const compressed = await compressImage(file);
+    setImageFile(compressed);
+    setImagePreview(URL.createObjectURL(compressed));
+    console.log('Selected image for upload', compressed);
 
     if (mode === 'ai') {
       setLoading(true);
@@ -82,12 +90,12 @@ export default function AddBook() {
       let imageUrl = bookData.image_url;
 
       if (imageFile) {
-        // Placeholder: convert image to base64 string for now
+        const finalFile = await compressImage(imageFile);
         const reader = new FileReader();
         imageUrl = await new Promise((resolve, reject) => {
           reader.onload = () => resolve(reader.result);
           reader.onerror = reject;
-          reader.readAsDataURL(imageFile);
+          reader.readAsDataURL(finalFile);
         });
       }
 
