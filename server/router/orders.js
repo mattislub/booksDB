@@ -1,6 +1,7 @@
 import express from 'express';
 import pool from '../db.js';
 import { getUserFromRequest } from './auth.js';
+import { sendMail } from '../mailer.js';
 
 const router = express.Router();
 
@@ -23,6 +24,36 @@ router.post('/api/orders', async (req, res) => {
         'INSERT INTO order_items (order_id, book_id, quantity, price) VALUES ($1,$2,$3,$4)',
         [order.id, item.id, item.quantity, item.price]
       );
+    }
+
+    const itemsHtml = items
+      .map((item) => `<li>${item.title} - ${item.quantity} x ${item.price} ₪</li>`)
+      .join('');
+    const orderHtml = `
+      <div dir="rtl">
+        <h2>הזמנה חדשה באתר</h2>
+        <p>שם הלקוח: ${name}</p>
+        <p>טלפון: ${phone}</p>
+        <p>כתובת: ${shipping_address}</p>
+        <ul>${itemsHtml}</ul>
+        <p>סה\"כ לתשלום: ${total} ₪</p>
+      </div>
+    `;
+
+    if (email) {
+      await sendMail({
+        to: email,
+        subject: `הזמנה מספר ${order.id} התקבלה`,
+        html: orderHtml,
+      });
+    }
+
+    if (process.env.MAIL_STORE) {
+      await sendMail({
+        to: process.env.MAIL_STORE,
+        subject: `התקבלה הזמנה חדשה ${order.id}`,
+        html: orderHtml,
+      });
     }
 
     res.json(order);
