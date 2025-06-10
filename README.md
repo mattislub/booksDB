@@ -10,6 +10,13 @@ Create a `.env` file (you can copy `.env.example`) and set the following variabl
 - `PORT` – Port for the Express server (defaults to `3000` if not set).
 - `OPENAI_API_KEY` – API key with access to GPT‑4 Vision used to extract book
   details directly from uploaded cover images.
+- `MAIL_HOST` – SMTP server host used to send emails.
+- `MAIL_PORT` – SMTP port (defaults to `587`).
+- `MAIL_USER` – SMTP username.
+- `MAIL_PASS` – SMTP password.
+- `MAIL_FROM` – Email address used as the sender.
+- `MAIL_STORE` – Address that receives new order notifications.
+- `MAIL_SECURE` – Set to `true` if the SMTP server requires SSL.
 
 The Vite development server also listens on port `3000`. If you plan to run the
 API server and frontend simultaneously, set `PORT` to a different value (for
@@ -77,6 +84,13 @@ This serves the content of the `dist` directory on the port configured in `vite.
 2. ערכו את הערכים:
    - `DATABASE_URL` – כתובת החיבור למסד הנתונים PostgreSQL.
    - `PORT` – מספר הפורט שעליו ירוץ שרת Express (ברירת מחדל 3000). אם אתם מפעילים גם את שרת Vite במקביל, מומלץ לבחור פורט אחר (למשל 3001).
+   - `MAIL_HOST` – כתובת שרת ה‑SMTP לשליחת מיילים.
+   - `MAIL_PORT` – פורט ה‑SMTP (ברירת מחדל 587).
+   - `MAIL_USER` – שם המשתמש ל‑SMTP.
+   - `MAIL_PASS` – סיסמת ה‑SMTP.
+   - `MAIL_FROM` – הכתובת שממנה נשלחים המיילים.
+   - `MAIL_STORE` – כתובת לקבלת התראות על הזמנות חדשות.
+   - `MAIL_SECURE` – ערך `true` אם יש צורך בחיבור מאובטח (SSL).
 
 ### התקנת חבילות
 
