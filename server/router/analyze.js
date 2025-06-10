@@ -3,12 +3,24 @@ import OpenAI from 'openai';
 
 const router = express.Router();
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let openai;
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+} else {
+  console.warn(
+    'OPENAI_API_KEY is not configured. /api/analyze-book-image will be disabled.'
+  );
+}
 
 router.post(
   '/api/analyze-book-image',
   express.raw({ type: 'multipart/form-data', limit: '10mb' }),
   async (req, res) => {
+    if (!openai) {
+      return res.status(503).json({
+        error: 'Image analysis feature inactive: missing OPENAI_API_KEY',
+      });
+    }
     try {
       const boundaryMatch = req.headers['content-type']?.match(/boundary=(.*)$/);
       if (!boundaryMatch) {

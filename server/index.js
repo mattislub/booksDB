@@ -13,6 +13,12 @@ import setupRouter from './router/setup.js';
 
 dotenv.config();
 
+if (!process.env.OPENAI_API_KEY) {
+  console.warn(
+    'OPENAI_API_KEY is not set. /api/analyze-book-image endpoint will be disabled.'
+  );
+}
+
 const app = express();
 const corsOptions = { origin: process.env.CORS_ORIGIN || '*' };
 app.use(cors(corsOptions));
