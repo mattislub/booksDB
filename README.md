@@ -11,6 +11,11 @@ Create a `.env` file (you can copy `.env.example`) and set the following variabl
 - `OPENAI_API_KEY` – API key with access to GPT‑4 Vision used to extract book
   details directly from uploaded cover images. If omitted, the `/api/analyze-book-image`
   endpoint will return a `503` response and book image analysis will be disabled.
+- `CORS_ORIGIN` – Frontend origin allowed to access the API. Set this to the URL
+  where the React app is hosted (e.g. `https://talpiot-books.com`).
+- `VITE_API_URL` – Base URL of the API used by the frontend. In production this
+  should match the public address of the Express server (e.g.
+  `https://api.talpiot-books.com`).
 
 The Vite development server also listens on port `3000`. If you plan to run the
 API server and frontend simultaneously, set `PORT` to a different value (for
