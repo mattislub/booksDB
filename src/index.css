@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    margin: 0;
+    font-family: 'Frank Ruhl Libre', serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f8f6f1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Frank Ruhl Libre', serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[#a48327] text-white py-2 px-6 rounded-lg hover:bg-[#8b6f1f] transition-all duration-300 transform hover:scale-105;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300;
+  }
+
+  .input-field {
+    @apply w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#a48327] focus:border-transparent outline-none transition duration-200;
+  }
+
+  .nav-link {
+    @apply hover:text-[#a48327] transition-colors duration-200;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #a48327;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8b6f1f;
+}

@@ -24,14 +24,9 @@ Install the JavaScript dependencies for both the frontend and server:
 npm install
 ```
 
-<<<<<<< codex/add-bcrypt-for-password-hashing
-This will also install the new `bcrypt` package used to securely hash user
-passwords on registration.
-=======
 This project now uses `bcrypt` to securely hash passwords. If you're pulling
 these changes into an existing checkout, run `npm install` again to make sure
 the new dependency is installed.
->>>>>>> main
 
 ## Running the Express Server
 
@@ -95,8 +90,6 @@ This serves the content of the `dist` directory on the port configured in `vite.
 ```bash
 npm install
 ```
-
-הפקודה תתקין גם את החבילה `bcrypt` המשמשת להצפנת סיסמאות משתמשים.
 
 ### הפעלת שרת Express
 
