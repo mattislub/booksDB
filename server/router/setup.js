@@ -77,6 +77,14 @@ router.post('/api/setup', async (req, res) => {
       price NUMERIC(10,2) NOT NULL
     )`);
 
+    await pool.query(`CREATE TABLE IF NOT EXISTS wishlist (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (user_id, book_id)
+    )`);
+
     await pool.query(`CREATE TABLE IF NOT EXISTS promotions (
       id SERIAL PRIMARY KEY,
       code TEXT NOT NULL UNIQUE,
