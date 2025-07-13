@@ -8,6 +8,7 @@ import profileRouter from './router/profile.js';
 import booksRouter from './router/books.js';
 import categoriesRouter from './router/categories.js';
 import ordersRouter from './router/orders.js';
+import wishlistRouter from './router/wishlist.js';
 import contentRouter from './router/content.js';
 import setupRouter from './router/setup.js';
 
@@ -32,6 +33,7 @@ app.use(profileRouter);
 app.use(booksRouter);
 app.use(categoriesRouter);
 app.use(ordersRouter);
+app.use(wishlistRouter);
 app.use(contentRouter);
 app.use(setupRouter);
 
