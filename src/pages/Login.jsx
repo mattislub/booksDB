@@ -20,7 +20,7 @@ export default function Login() {
       : await signUp(email, password);
 
     if (result.success) {
-      navigate('/user');
+      navigate('/personal');
     }
   };
 
