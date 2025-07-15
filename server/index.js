@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import { logError } from './logger.js';
 
 import analyzeRouter from './router/analyze.js';
 import authRouter from './router/auth.js';
@@ -26,6 +27,10 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 
 app.use(analyzeRouter);
 app.use(authRouter);
@@ -38,6 +43,13 @@ app.use(contentRouter);
 app.use(setupRouter);
 
 const PORT = process.env.PORT || 3000;
+
+// Error handler
+app.use((err, req, res, next) => {
+  logError(err);
+  res.status(500).json({ error: 'Server error' });
+});
+
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });

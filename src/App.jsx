@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import PromoBoxes from "./components/PromoBoxes";
 import { NewOnSite } from './components/NewOnSite';
 import { NewInMarket } from './components/NewInMarket';
+import Home from './pages/Home';
 import CategoriesView from "./components/CategoriesView";
 import BookDetails from "./components/BookDetails";
 import NotFound from "./components/NotFound";
@@ -53,28 +54,7 @@ function App() {
         <Header />
         <main className="max-w-7xl mx-auto px-4 py-8">
           <Routes>
-            <Route
-              path="/"
-              element={
-                <div className="space-y-12">
-                  <section className="bg-white rounded-2xl shadow-lg p-4">
-                    <NewOnSite />
-                  </section>
-                  
-                  <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <PromoBoxes />
-                  </section>
-                  
-                  <section className="bg-white rounded-2xl shadow-lg p-4">
-                    <NewInMarket />
-                  </section>
-                  
-                  <section className="bg-white rounded-2xl shadow-lg p-8">
-                    <Catalog />
-                  </section>
-                </div>
-              }
-            />
+            <Route path="/" element={<Home />} />
             <Route path="/categories" element={<CategoriesView />} />
             <Route path="/books/:id" element={<BookDetails />} />
             <Route path="/about" element={<About />} />
