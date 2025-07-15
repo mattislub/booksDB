@@ -1,11 +1,11 @@
 import React from 'react';
 import { Navigate, Link, Routes, Route } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
-import UserProfile from '../components/UserProfile';
-import UserOrders from '../components/UserOrders';
-import UserWishlist from '../components/UserWishlist';
+import PersonalProfile from '../components/PersonalProfile';
+import PersonalOrders from '../components/PersonalOrders';
+import PersonalWishlist from '../components/PersonalWishlist';
 
-export default function UserArea() {
+export default function PersonalArea() {
   const { user, loading } = useAuthStore();
 
   if (loading) {
@@ -23,22 +23,13 @@ export default function UserArea() {
       <div className="grid md:grid-cols-4 gap-8">
         <div className="bg-white rounded-xl shadow-lg p-6">
           <nav className="space-y-2">
-            <Link
-              to="/user"
-              className="block py-2 px-4 rounded hover:bg-gray-100 transition"
-            >
+            <Link to="/personal" className="block py-2 px-4 rounded hover:bg-gray-100 transition">
               פרופיל
             </Link>
-            <Link
-              to="/user/orders"
-              className="block py-2 px-4 rounded hover:bg-gray-100 transition"
-            >
+            <Link to="/personal/orders" className="block py-2 px-4 rounded hover:bg-gray-100 transition">
               הזמנות
             </Link>
-            <Link
-              to="/user/wishlist"
-              className="block py-2 px-4 rounded hover:bg-gray-100 transition"
-            >
+            <Link to="/personal/wishlist" className="block py-2 px-4 rounded hover:bg-gray-100 transition">
               רשימת משאלות
             </Link>
           </nav>
@@ -46,9 +37,9 @@ export default function UserArea() {
 
         <div className="md:col-span-3 bg-white rounded-xl shadow-lg p-6">
           <Routes>
-            <Route index element={<UserProfile />} />
-            <Route path="orders" element={<UserOrders />} />
-            <Route path="wishlist" element={<UserWishlist />} />
+            <Route index element={<PersonalProfile />} />
+            <Route path="orders" element={<PersonalOrders />} />
+            <Route path="wishlist" element={<PersonalWishlist />} />
           </Routes>
         </div>
       </div>

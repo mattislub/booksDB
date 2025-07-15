@@ -11,7 +11,7 @@ import NotFound from "./components/NotFound";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
-import UserArea from "./pages/UserArea";
+import PersonalArea from "./pages/PersonalArea";
 import Checkout from "./pages/Checkout";
 import Terms from "./pages/Terms";
 import Shipping from "./pages/Shipping";
@@ -80,7 +80,7 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/user/*" element={<UserArea />} />
+            <Route path="/personal/*" element={<PersonalArea />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/shipping" element={<Shipping />} />

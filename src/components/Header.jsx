@@ -104,7 +104,7 @@ export default function Header() {
           </div>
           {user ? (
             <div className="flex items-center gap-4">
-              <Link to="/user" className="hover:text-yellow-400">
+              <Link to="/personal" className="hover:text-yellow-400">
                 <User size={20} strokeWidth={1.5} />
               </Link>
               <button onClick={signOut} className="text-sm hover:text-yellow-400">
