@@ -11,6 +11,12 @@ router.post('/api/setup', async (req, res) => {
       password TEXT NOT NULL
     )`);
 
+    // Ensure the password column exists even if the users table was
+    // created before authentication was implemented.
+    await pool.query(
+      `ALTER TABLE users ADD COLUMN IF NOT EXISTS password TEXT`
+    );
+
     await pool.query(`CREATE TABLE IF NOT EXISTS profiles (
       user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
       name TEXT,
