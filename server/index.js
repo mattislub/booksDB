@@ -22,7 +22,10 @@ if (!process.env.OPENAI_API_KEY) {
 }
 
 const app = express();
-const corsOptions = { origin: process.env.CORS_ORIGIN || '*' };
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || true,
+  credentials: true
+};
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));

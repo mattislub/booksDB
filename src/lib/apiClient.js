@@ -19,13 +19,16 @@ async function handleResponse(res) {
 }
 
 export const apiGet = async (path) => {
-  const res = await fetch(`${API_URL}${path}`);
+  const res = await fetch(`${API_URL}${path}`, {
+    credentials: 'include'
+  });
   return handleResponse(res);
 };
 
 export const apiPost = async (path, body) => {
   const res = await fetch(`${API_URL}${path}`, {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
@@ -35,6 +38,7 @@ export const apiPost = async (path, body) => {
 export const apiPostFormData = async (path, formData) => {
   const res = await fetch(`${API_URL}${path}`, {
     method: 'POST',
+    credentials: 'include',
     body: formData
   });
   return handleResponse(res);
