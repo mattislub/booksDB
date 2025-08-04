@@ -38,8 +38,11 @@ const useAuthStore = create((set) => ({
       return { success: true };
     } catch (error) {
       console.error('Error in signIn:', error);
+      const message = error?.status === 401
+        ? 'פרטי התחברות שגויים'
+        : error?.message || 'שגיאה בהתחברות';
       set({
-        error: 'פרטי התחברות שגויים',
+        error: message,
         loading: false
       });
       return { success: false, error };
@@ -60,8 +63,9 @@ const useAuthStore = create((set) => ({
       return { success: true };
     } catch (error) {
       console.error('Error in signUp:', error);
+      const message = error?.message || 'שגיאה בהרשמה';
       set({
-        error: 'שגיאה בהרשמה',
+        error: message,
         loading: false
       });
       return { success: false, error };
