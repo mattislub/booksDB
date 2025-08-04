@@ -1,10 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Catalog from "./components/Catalog";
 import Header from "./components/Header";
-import PromoBoxes from "./components/PromoBoxes";
-import { NewOnSite } from './components/NewOnSite';
-import { NewInMarket } from './components/NewInMarket';
 import Home from './pages/Home';
 import CategoriesView from "./components/CategoriesView";
 import BookDetails from "./components/BookDetails";
