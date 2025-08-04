@@ -3,6 +3,11 @@ CREATE TABLE IF NOT EXISTS orders (
   user_id INTEGER,
   total NUMERIC(10,2) NOT NULL,
   status TEXT DEFAULT 'pending',
+  name TEXT,
+  email TEXT,
+  phone TEXT,
+  shipping_address TEXT,
+  notes TEXT,
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
