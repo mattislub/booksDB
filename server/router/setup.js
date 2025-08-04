@@ -12,10 +12,19 @@ router.post('/api/setup', async (req, res) => {
     )`);
 
     // Ensure the password column exists even if the users table was
-    // created before authentication was implemented.
-    await pool.query(
-      `ALTER TABLE users ADD COLUMN IF NOT EXISTS password TEXT`
-    );
+    // created before authentication was implemented. If the connected
+    // database user does not own the table, PostgreSQL throws error
+    // 42501 (insufficient privilege). In that case, ignore the error
+    // so setup can proceed without failing.
+    try {
+      await pool.query(
+        `ALTER TABLE users ADD COLUMN IF NOT EXISTS password TEXT`
+      );
+    } catch (err) {
+      if (err.code !== '42501') {
+        throw err;
+      }
+    }
 
     await pool.query(`CREATE TABLE IF NOT EXISTS profiles (
       user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
