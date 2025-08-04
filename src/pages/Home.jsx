@@ -2,6 +2,7 @@ import React from 'react';
 import PromoBoxes from '../components/PromoBoxes';
 import { NewOnSite } from '../components/NewOnSite';
 import { NewInMarket } from '../components/NewInMarket';
+import Catalog from '../components/Catalog';
 
 export default function Home() {
   return (
@@ -17,6 +18,7 @@ export default function Home() {
 
       <NewOnSite />
       <NewInMarket />
+      <Catalog />
     </div>
   );
 }
