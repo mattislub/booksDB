@@ -6,28 +6,34 @@ const router = express.Router();
 router.get('/api/books', async (req, res) => {
   try {
     const { search, filter } = req.query;
-    let query = 'SELECT * FROM books';
+    let query = `
+      SELECT b.*, COALESCE(ARRAY_REMOVE(array_agg(c.name), NULL), '{}') AS categories
+      FROM books b
+      LEFT JOIN book_categories bc ON b.id = bc.book_id
+      LEFT JOIN categories c ON bc.category_id = c.id
+    `;
     const params = [];
     const conditions = [];
 
     if (search) {
       params.push(`%${search}%`);
-      conditions.push(`(title ILIKE $${params.length} OR author ILIKE $${params.length} OR isbn ILIKE $${params.length})`);
+      conditions.push(`(b.title ILIKE $${params.length} OR b.author ILIKE $${params.length} OR b.isbn ILIKE $${params.length})`);
     }
 
     if (filter === 'newArrivals') {
-      conditions.push('is_new_arrival = true');
+      conditions.push('b.is_new_arrival = true');
     } else if (filter === 'newInMarket') {
-      conditions.push('is_new_in_market = true');
+      conditions.push('b.is_new_in_market = true');
     }
 
     if (conditions.length) {
       query += ' WHERE ' + conditions.join(' AND ');
     }
 
-    query += ' ORDER BY created_at DESC';
+    query += ' GROUP BY b.id ORDER BY b.created_at DESC';
     const { rows } = await pool.query(query, params);
-    res.json(rows);
+    const result = rows.map(r => ({ ...r, category: r.categories[0] || null }));
+    res.json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Database error' });
@@ -37,9 +43,18 @@ router.get('/api/books', async (req, res) => {
 router.get('/api/books/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { rows } = await pool.query('SELECT * FROM books WHERE id = $1', [id]);
+    const { rows } = await pool.query(
+      `SELECT b.*, COALESCE(ARRAY_REMOVE(array_agg(c.name), NULL), '{}') AS categories
+       FROM books b
+       LEFT JOIN book_categories bc ON b.id = bc.book_id
+       LEFT JOIN categories c ON bc.category_id = c.id
+       WHERE b.id = $1
+       GROUP BY b.id`,
+      [id]
+    );
     if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
-    res.json(rows[0]);
+    const book = { ...rows[0], category: rows[0].categories[0] || null };
+    res.json(book);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Database error' });
@@ -137,6 +152,7 @@ router.post('/api/books', async (req, res) => {
       : category
       ? [category]
       : [];
+    let categoryNames = [];
     if (categoryList.length) {
       const values = categoryList
         .map((_, idx) => `($1,$${idx + 2})`)
@@ -145,9 +161,14 @@ router.post('/api/books', async (req, res) => {
         `INSERT INTO book_categories (book_id, category_id) VALUES ${values}`,
         [book.id, ...categoryList]
       );
+      const { rows: catRows } = await pool.query(
+        'SELECT name FROM categories WHERE id = ANY($1)',
+        [categoryList]
+      );
+      categoryNames = catRows.map(r => r.name);
     }
 
-    res.json({ ...book, categories: categoryList });
+    res.json({ ...book, categories: categoryNames, category: categoryNames[0] || null });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Database error' });
@@ -262,6 +283,7 @@ router.post('/api/books/:id', async (req, res) => {
       ? [category]
       : [];
     await pool.query('DELETE FROM book_categories WHERE book_id=$1', [id]);
+    let categoryNames = [];
     if (categoryList.length) {
       const values = categoryList
         .map((_, idx) => `($1,$${idx + 2})`)
@@ -270,9 +292,14 @@ router.post('/api/books/:id', async (req, res) => {
         `INSERT INTO book_categories (book_id, category_id) VALUES ${values}`,
         [id, ...categoryList]
       );
+      const { rows: catRows } = await pool.query(
+        'SELECT name FROM categories WHERE id = ANY($1)',
+        [categoryList]
+      );
+      categoryNames = catRows.map(r => r.name);
     }
 
-    res.json({ ...book, categories: categoryList });
+    res.json({ ...book, categories: categoryNames, category: categoryNames[0] || null });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Database error' });
