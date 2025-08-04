@@ -39,7 +39,7 @@ export default function PersonalOrders() {
           {orders.map((order) => (
             <div key={order.id} className="border rounded-lg p-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="font-bold">הזמנה #{order.id.slice(0, 8)}</span>
+                <span className="font-bold">הזמנה #{String(order.id).slice(0, 8)}</span>
                 <span className="text-sm text-gray-600">
                   {new Date(order.created_at).toLocaleDateString('he-IL')}
                 </span>
