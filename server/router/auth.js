@@ -54,14 +54,26 @@ router.post('/api/auth/register', async (req, res) => {
       user = rows[0];
     } catch (err) {
       if (err.code === '42703') {
-        // Password column is missing (legacy database). Insert the user
-        // without a password so the request succeeds, though login will
-        // not be possible until the database is migrated.
-        const { rows } = await pool.query(
-          'INSERT INTO users (email) VALUES ($1) RETURNING id, email',
-          [email]
-        );
-        user = rows[0];
+        try {
+          const { rows } = await pool.query(
+            'INSERT INTO users (email, password_hash) VALUES ($1,$2) RETURNING id, email',
+            [email, hashed]
+          );
+          user = rows[0];
+        } catch (err2) {
+          if (err2.code === '42703') {
+            // Password column is missing (legacy database). Insert the user
+            // without a password so the request succeeds, though login will
+            // not be possible until the database is migrated.
+            const { rows } = await pool.query(
+              'INSERT INTO users (email) VALUES ($1) RETURNING id, email',
+              [email]
+            );
+            user = rows[0];
+          } else {
+            throw err2;
+          }
+        }
       } else {
         throw err;
       }
@@ -89,20 +101,32 @@ router.post('/api/auth/login', async (req, res) => {
       user = rows[0];
     } catch (err) {
       if (err.code === '42703') {
-        // Password column is missing. Return invalid credentials rather
-        // than a database error to avoid leaking implementation details.
-        return res.status(401).json({ error: 'Invalid credentials' });
+        try {
+          const { rows } = await pool.query(
+            'SELECT id, email, password_hash FROM users WHERE email=$1',
+            [email]
+          );
+          user = rows[0];
+        } catch (err2) {
+          if (err2.code === '42703') {
+            // No password column available. Return invalid credentials to avoid leaking details.
+            return res.status(401).json({ error: 'Invalid credentials' });
+          }
+          throw err2;
+        }
+      } else {
+        throw err;
       }
-      throw err;
     }
 
-    // If the user doesn't exist or the password column is NULL, return a
+    // If the user doesn't exist or no password column is present, return a
     // generic invalid credentials error to avoid leaking details.
-    if (!user || !user.password) {
+    const hash = user && (user.password || user.password_hash);
+    if (!user || !hash) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const match = await bcrypt.compare(password, user.password);
+    const match = await bcrypt.compare(password, hash);
     if (!match) return res.status(401).json({ error: 'Invalid credentials' });
     const sid = crypto.randomUUID();
     sessions[sid] = user.id;
