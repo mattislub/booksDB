@@ -48,6 +48,11 @@ export default function Catalog() {
             <div className="p-4 flex-1 flex flex-col justify-between">
               <div>
                 <h3 className="text-xl font-semibold text-[#112a55] mb-2">{book.title}</h3>
+                {(book.categories?.length || book.category) && (
+                  <p className="text-sm text-gray-500 mb-2">
+                    קטגוריה: {book.categories?.join(', ') || book.category}
+                  </p>
+                )}
                 <p className="text-sm text-gray-600 mb-2">{book.description}</p>
                 <p className="text-md font-bold text-[#a48327]">{book.price} ₪</p>
               </div>
