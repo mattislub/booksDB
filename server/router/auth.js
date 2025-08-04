@@ -69,7 +69,11 @@ router.post('/api/auth/login', async (req, res) => {
       [email]
     );
     const user = rows[0];
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+    // If the user doesn't exist or the password column is missing/NULL,
+    // return a generic invalid credentials error to avoid leaking details.
+    if (!user || !user.password) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ error: 'Invalid credentials' });
