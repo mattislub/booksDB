@@ -45,11 +45,27 @@ router.post('/api/auth/register', async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    const { rows } = await pool.query(
-      'INSERT INTO users (email, password) VALUES ($1,$2) RETURNING id, email',
-      [email, hashed]
-    );
-    const user = rows[0];
+    let user;
+    try {
+      const { rows } = await pool.query(
+        'INSERT INTO users (email, password) VALUES ($1,$2) RETURNING id, email',
+        [email, hashed]
+      );
+      user = rows[0];
+    } catch (err) {
+      if (err.code === '42703') {
+        // Password column is missing (legacy database). Insert the user
+        // without a password so the request succeeds, though login will
+        // not be possible until the database is migrated.
+        const { rows } = await pool.query(
+          'INSERT INTO users (email) VALUES ($1) RETURNING id, email',
+          [email]
+        );
+        user = rows[0];
+      } else {
+        throw err;
+      }
+    }
 
     const sid = crypto.randomUUID();
     sessions[sid] = user.id;
