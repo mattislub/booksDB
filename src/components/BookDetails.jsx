@@ -13,7 +13,7 @@ export default function BookDetails() {
   const relatedBooks = useMemo(() => {
     if (!book) return [];
     return books
-      .filter(b => b.category === book.category && b.id !== book.id)
+      .filter(b => b.id !== book.id && b.categories?.some(cat => book.categories?.includes(cat)))
       .slice(0, 4);
   }, [books, book]);
 
@@ -44,11 +44,13 @@ export default function BookDetails() {
             <div>
               <h1 className="text-3xl font-bold text-[#112a55] mb-2">{book.title}</h1>
               <p className="text-xl text-gray-600 mb-4">{book.author || "מחבר לא ידוע"}</p>
-              <div className="flex items-center gap-2 text-[#a48327]">
-                <span className="text-sm bg-[#fdf6ec] px-3 py-1 rounded-full">
-                  {book.category}
-                </span>
-              </div>
+                <div className="flex items-center gap-2 flex-wrap text-[#a48327]">
+                  {book.categories?.map(cat => (
+                    <span key={cat} className="text-sm bg-[#fdf6ec] px-3 py-1 rounded-full">
+                      {cat}
+                    </span>
+                  ))}
+                </div>
             </div>
 
             <p className="text-gray-700 text-lg leading-relaxed border-t border-b border-gray-100 py-4">

@@ -12,7 +12,7 @@ export default function AdminBookManager() {
     price: "",
     availability: "available",
     image_url: "",
-    category: ""
+    categories: []
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [message, setMessage] = useState("");
@@ -40,7 +40,7 @@ export default function AdminBookManager() {
           price: "",
           availability: "available",
           image_url: "",
-          category: ""
+          categories: []
         });
       } else {
         throw result.error;
@@ -57,6 +57,9 @@ export default function AdminBookManager() {
   };
 
   const handleEdit = (book) => {
+    const selected = categories
+      .filter(cat => book.categories?.includes(cat.name))
+      .map(cat => cat.id);
     setFormData({
       id: book.id,
       title: book.title || "",
@@ -65,7 +68,7 @@ export default function AdminBookManager() {
       price: book.price?.toString() || "",
       availability: book.availability || "available",
       image_url: book.image_url || "",
-      category: book.category || ""
+      categories: selected
     });
   };
 
@@ -165,17 +168,28 @@ export default function AdminBookManager() {
           className="w-full border px-3 py-2 rounded"
         />
 
-        <select
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-          className="w-full border px-3 py-2 rounded"
-        >
-          <option value="">בחר קטגוריה</option>
-          {categories.map(cat => (
-            <option key={cat.id} value={cat.id}>{cat.name}</option>
-          ))}
-        </select>
+        <div>
+          <label className="block text-gray-700 mb-1">קטגוריות</label>
+          <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border p-2 rounded">
+            {categories.map(cat => (
+              <label key={cat.id} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.categories.includes(cat.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setFormData(prev => ({ ...prev, categories: [...prev.categories, cat.id] }));
+                    } else {
+                      setFormData(prev => ({ ...prev, categories: prev.categories.filter(id => id !== cat.id) }));
+                    }
+                  }}
+                  className="form-checkbox h-5 w-5 text-[#112a55]"
+                />
+                <span>{cat.name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
 
         <button
           type="submit"
