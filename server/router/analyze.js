@@ -15,6 +15,25 @@ if (process.env.OPENAI_API_KEY) {
   );
 }
 
+function detectMimeType(buffer) {
+  if (buffer.slice(0, 4).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47]))) {
+    return 'image/png';
+  }
+  if (buffer.slice(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff]))) {
+    return 'image/jpeg';
+  }
+  if (buffer.slice(0, 3).equals(Buffer.from([0x47, 0x49, 0x46]))) {
+    return 'image/gif';
+  }
+  if (
+    buffer.slice(0, 4).equals(Buffer.from([0x52, 0x49, 0x46, 0x46])) &&
+    buffer.slice(8, 12).equals(Buffer.from([0x57, 0x45, 0x42, 0x50]))
+  ) {
+    return 'image/webp';
+  }
+  return null;
+}
+
 router.post(
   '/api/analyze-book-image',
   express.raw({ type: 'multipart/form-data', limit: '10mb' }),
@@ -38,27 +57,34 @@ router.post(
 
       console.log(`Received ${imageBuffer.length} bytes for analyze-book-image`);
 
+      const mimeType = detectMimeType(imageBuffer);
+      if (!mimeType) {
+        return res
+          .status(400)
+          .json({ error: 'Unsupported image format' });
+      }
+
       const imageBase64 = imageBuffer.toString('base64');
-     const messages = [
-  {
-    role: 'user',
-    content: [
-      {
-        type: 'text',
-          text:
-            'Extract the book title, author, description and ISBN from this book cover. ' +
-            'Respond in JSON with keys "title", "author", "description", "isbn". ' +
-            'The description must be written in Hebrew only.',
+      const messages = [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text:
+                'Extract the book title, author, description and ISBN from this book cover. ' +
+                'Respond in JSON with keys "title", "author", "description", "isbn". ' +
+                'The description must be written in Hebrew only.',
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: `data:${mimeType};base64,${imageBase64}`
+              },
+            },
+          ],
         },
-      {
-        type: 'image_url',
-        image_url: {
-          url: `data:image/jpeg;base64,${imageBase64}`
-        },
-      },
-    ],
-  },
-];
+      ];
 
       const chat = await openai.chat.completions.create({
         model: 'gpt-3o',
