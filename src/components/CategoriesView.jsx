@@ -125,10 +125,10 @@ export default function CategoriesView() {
 
   useEffect(() => {
     if (searchQuery) {
-      const filtered = books.filter(book => 
+      const filtered = books.filter(book =>
         book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         book.author?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.category?.toLowerCase().includes(searchQuery.toLowerCase())
+        book.categories?.some(cat => cat.toLowerCase().includes(searchQuery.toLowerCase()))
       );
       setFilteredBooks(filtered);
     } else {
@@ -137,8 +137,8 @@ export default function CategoriesView() {
   }, [searchQuery, books]);
 
   const handleViewBooks = (categoryName) => {
-    const categoryBooks = books.filter(book => 
-      book.category?.toLowerCase() === categoryName.toLowerCase()
+    const categoryBooks = books.filter(book =>
+      book.categories?.some(cat => cat.toLowerCase() === categoryName.toLowerCase())
     );
     setSelectedCategory({ name: categoryName, books: categoryBooks });
   };

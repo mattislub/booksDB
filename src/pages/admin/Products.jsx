@@ -19,37 +19,37 @@ export default function Products() {
   const [validationErrors, setValidationErrors] = useState({});
   const [imagePreview, setImagePreview] = useState('');
 
-  const [formData, setFormData] = useState({
-    title: '',
-    author: '',
-    description: '',
-    price: '',
-    category: '',
-    image_url: '',
-    availability: 'available',
-    isbn: '',
-    publisher: '',
-    publication_year: '',
-    pages: '',
-    language: 'hebrew',
-    binding: 'hardcover',
-    dimensions: '',
-    weight: '',
-    stock: '1',
-    is_new_arrival: false,
-    is_new_in_market: false
-  });
+    const [formData, setFormData] = useState({
+      title: '',
+      author: '',
+      description: '',
+      price: '',
+      categories: [],
+      image_url: '',
+      availability: 'available',
+      isbn: '',
+      publisher: '',
+      publication_year: '',
+      pages: '',
+      language: 'hebrew',
+      binding: 'hardcover',
+      dimensions: '',
+      weight: '',
+      stock: '1',
+      is_new_arrival: false,
+      is_new_in_market: false
+    });
 
   useEffect(() => {
     initBooks();
     initCategories();
   }, [initBooks, initCategories]);
 
-  const validateForm = () => {
-    const errors = {};
-    if (!formData.title.trim()) errors.title = 'שם הספר הוא שדה חובה';
-    if (!formData.price || formData.price <= 0) errors.price = 'יש להזין מחיר תקין';
-    if (!formData.category) errors.category = 'יש לבחור קטגוריה';
+    const validateForm = () => {
+      const errors = {};
+      if (!formData.title.trim()) errors.title = 'שם הספר הוא שדה חובה';
+      if (!formData.price || formData.price <= 0) errors.price = 'יש להזין מחיר תקין';
+      if (!formData.categories.length) errors.categories = 'יש לבחור קטגוריה';
     
     if (formData.isbn && !/^[\d-]{10,13}$/.test(formData.isbn)) {
       errors.isbn = 'מספר ISBN לא תקין';
@@ -86,40 +86,58 @@ export default function Products() {
   };
 
   const resetForm = () => {
-    setFormData({
-      title: '',
-      author: '',
-      description: '',
-      price: '',
-      category: '',
-      image_url: '',
-      availability: 'available',
-      isbn: '',
-      publisher: '',
-      publication_year: '',
-      pages: '',
-      language: 'hebrew',
-      binding: 'hardcover',
-      dimensions: '',
-      weight: '',
-      stock: '1',
-      is_new_arrival: false,
-      is_new_in_market: false
-    });
+      setFormData({
+        title: '',
+        author: '',
+        description: '',
+        price: '',
+        categories: [],
+        image_url: '',
+        availability: 'available',
+        isbn: '',
+        publisher: '',
+        publication_year: '',
+        pages: '',
+        language: 'hebrew',
+        binding: 'hardcover',
+        dimensions: '',
+        weight: '',
+        stock: '1',
+        is_new_arrival: false,
+        is_new_in_market: false
+      });
     setImagePreview('');
     setValidationErrors({});
   };
 
-  const handleEdit = (book) => {
-    setSelectedBook(book);
-    setFormData({
-      ...book,
-      price: book.price?.toString() || '',
-      stock: book.stock?.toString() || '1'
-    });
-    setImagePreview(book.image_url || '');
-    setIsModalOpen(true);
-  };
+    const handleEdit = (book) => {
+      setSelectedBook(book);
+      const selected = categories
+        .filter(cat => book.categories?.includes(cat.name))
+        .map(cat => cat.id);
+      setFormData({
+        title: book.title || '',
+        author: book.author || '',
+        description: book.description || '',
+        price: book.price?.toString() || '',
+        categories: selected,
+        image_url: book.image_url || '',
+        availability: book.availability || 'available',
+        isbn: book.isbn || '',
+        publisher: book.publisher || '',
+        publication_year: book.publication_year?.toString() || '',
+        pages: book.pages?.toString() || '',
+        language: book.language || 'hebrew',
+        binding: book.binding || 'hardcover',
+        dimensions: book.dimensions || '',
+        weight: book.weight || '',
+        stock: book.stock?.toString() || '1',
+        is_new_arrival: book.is_new_arrival || false,
+        is_new_in_market: book.is_new_in_market || false
+      });
+      setImagePreview(book.image_url || '');
+      setIsModalOpen(true);
+    };
 
   const handleDelete = async (id) => {
     if (window.confirm('האם אתה בטוח שברצונך למחוק ספר זה?')) {
@@ -274,21 +292,32 @@ export default function Products() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 mb-1">קטגוריה *</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className={`w-full border rounded-lg p-2 ${
-                      validationErrors.category ? 'border-red-500' : ''
+                  <label className="block text-gray-700 mb-1">קטגוריות *</label>
+                  <div
+                    className={`grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded p-2 ${
+                      validationErrors.categories ? 'border-red-500' : ''
                     }`}
                   >
-                    <option value="">בחר קטגוריה</option>
                     {categories.map(cat => (
-                      <option key={cat.id} value={cat.name}>{cat.name}</option>
+                      <label key={cat.id} className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.categories.includes(cat.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData(prev => ({ ...prev, categories: [...prev.categories, cat.id] }));
+                            } else {
+                              setFormData(prev => ({ ...prev, categories: prev.categories.filter(id => id !== cat.id) }));
+                            }
+                          }}
+                          className="form-checkbox h-5 w-5 text-[#112a55]"
+                        />
+                        <span>{cat.name}</span>
+                      </label>
                     ))}
-                  </select>
-                  {validationErrors.category && (
-                    <p className="text-red-500 text-sm mt-1">{validationErrors.category}</p>
+                  </div>
+                  {validationErrors.categories && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.categories}</p>
                   )}
                 </div>
 
