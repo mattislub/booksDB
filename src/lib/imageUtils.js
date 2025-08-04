@@ -13,26 +13,45 @@ export async function compressImage(file, maxSizeMB = 5) {
   });
 
   const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
   let scale = Math.sqrt((maxSizeMB * 1024 * 1024) / file.size);
   if (scale > 1) scale = 1;
-  canvas.width = image.width * scale;
-  canvas.height = image.height * scale;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-  let quality = 0.92;
-  let blob = await new Promise((resolve) =>
-    canvas.toBlob(resolve, 'image/jpeg', quality)
-  );
-  while (blob && blob.size > maxSizeMB * 1024 * 1024 && quality > 0.5) {
-    quality -= 0.05;
+  let blob = null;
+  while (true) {
+    canvas.width = Math.max(1, image.width * scale);
+    canvas.height = Math.max(1, image.height * scale);
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    let quality = 0.92;
     blob = await new Promise((resolve) =>
       canvas.toBlob(resolve, 'image/jpeg', quality)
     );
+
+    while (blob && blob.size > maxSizeMB * 1024 * 1024 && quality > 0.5) {
+      quality -= 0.05;
+      blob = await new Promise((resolve) =>
+        canvas.toBlob(resolve, 'image/jpeg', quality)
+      );
+    }
+
+    if (!blob || blob.size <= maxSizeMB * 1024 * 1024 || scale <= 0.1) {
+      break;
+    }
+
+    // If the image is still too large, reduce dimensions further and retry
+    scale *= 0.9;
   }
 
   URL.revokeObjectURL(objectUrl);
-  return new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
-    type: 'image/jpeg',
-  });
+
+  if (blob && blob.size <= maxSizeMB * 1024 * 1024) {
+    return new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+      type: 'image/jpeg',
+    });
+  }
+
+  // Fallback: return original file if compression failed
+  return file;
 }
