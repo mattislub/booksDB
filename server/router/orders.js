@@ -1,6 +1,7 @@
 import express from 'express';
 import pool from '../db.js';
 import { getUserFromRequest } from './auth.js';
+import { sendOrderEmail } from '../email.js';
 
 const router = express.Router();
 
@@ -24,6 +25,8 @@ router.post('/api/orders', async (req, res) => {
         [order.id, item.id, item.quantity, item.price]
       );
     }
+
+    await sendOrderEmail(order, items);
 
     res.json(order);
   } catch (err) {

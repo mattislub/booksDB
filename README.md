@@ -11,6 +11,9 @@ Create a `.env` file (you can copy `.env.example`) and set the following variabl
 - `OPENAI_API_KEY` – API key with access to GPT‑4 Vision used to extract book
   details directly from uploaded cover images. If omitted, the `/api/analyze-book-image`
   endpoint will return a `503` response and book image analysis will be disabled.
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` – SMTP credentials used to
+  send confirmation emails after an order is placed. If these are not set,
+  the server will skip sending emails.
 
 The Vite development server also listens on port `3000`. If you plan to run the
 API server and frontend simultaneously, set `PORT` to a different value (for
@@ -82,6 +85,7 @@ This serves the content of the `dist` directory on the port configured in `vite.
 2. ערכו את הערכים:
    - `DATABASE_URL` – כתובת החיבור למסד הנתונים PostgreSQL.
    - `PORT` – מספר הפורט שעליו ירוץ שרת Express (ברירת מחדל 3000). אם אתם מפעילים גם את שרת Vite במקביל, מומלץ לבחור פורט אחר (למשל 3001).
+   - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` – פרטי שרת SMTP לשליחת אימייל אישור אחרי הזמנה. אם אינם מוגדרים, לא יישלח אימייל.
 
 ### התקנת חבילות
 
