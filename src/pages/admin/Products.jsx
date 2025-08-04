@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit2, Trash2, Image } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import useBooksStore from '../../store/booksStore';
 import useCategoriesStore from '../../store/categoriesStore';
 
 export default function Products() {
-  const { books, addBook, updateBook, deleteBook } = useBooksStore();
-  const { categories } = useCategoriesStore();
+  const {
+    books,
+    addBook,
+    updateBook,
+    deleteBook,
+    initialize: initBooks
+  } = useBooksStore();
+  const { categories, initialize: initCategories } = useCategoriesStore();
   const [selectedBook, setSelectedBook] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,6 +39,11 @@ export default function Products() {
     is_new_arrival: false,
     is_new_in_market: false
   });
+
+  useEffect(() => {
+    initBooks();
+    initCategories();
+  }, [initBooks, initCategories]);
 
   const validateForm = () => {
     const errors = {};
