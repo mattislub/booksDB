@@ -45,10 +45,11 @@ router.post(
     content: [
       {
         type: 'text',
-        text:
-          'Extract the book title, author, description and ISBN from this book cover. ' +
-          'Respond in JSON with keys "title", "author", "description", "isbn".',
-      },
+          text:
+            'Extract the book title, author, description and ISBN from this book cover. ' +
+            'Respond in JSON with keys "title", "author", "description", "isbn". ' +
+            'The description must be written in Hebrew only.',
+        },
       {
         type: 'image_url',
         image_url: {
