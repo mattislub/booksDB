@@ -63,6 +63,7 @@ router.post(
         model: 'gpt-4o',
         messages,
         temperature: 0,
+        response_format: { type: 'json_object' },
       });
       let metadata = { title: '', author: '', description: '', isbn: '' };
       try {
