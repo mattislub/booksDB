@@ -64,13 +64,24 @@ router.post('/api/auth/register', async (req, res) => {
 router.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const { rows } = await pool.query(
-      'SELECT id, email, password FROM users WHERE email=$1',
-      [email]
-    );
-    const user = rows[0];
-    // If the user doesn't exist or the password column is missing/NULL,
-    // return a generic invalid credentials error to avoid leaking details.
+    let user;
+    try {
+      const { rows } = await pool.query(
+        'SELECT id, email, password FROM users WHERE email=$1',
+        [email]
+      );
+      user = rows[0];
+    } catch (err) {
+      if (err.code === '42703') {
+        // Password column is missing. Return invalid credentials rather
+        // than a database error to avoid leaking implementation details.
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+      throw err;
+    }
+
+    // If the user doesn't exist or the password column is NULL, return a
+    // generic invalid credentials error to avoid leaking details.
     if (!user || !user.password) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
