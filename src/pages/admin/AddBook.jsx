@@ -49,16 +49,22 @@ export default function AddBook() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const compressed = await compressImage(file);
-    setImageFile(compressed);
-    setImagePreview(URL.createObjectURL(compressed));
-    console.log('Selected image for upload', compressed);
+    let processedFile = file;
+    try {
+      processedFile = await compressImage(file);
+    } catch (err) {
+      console.error('Error compressing image:', err);
+    }
+
+    setImageFile(processedFile);
+    setImagePreview(URL.createObjectURL(processedFile));
+    console.log('Selected image for upload', processedFile);
 
     if (mode === 'ai') {
       setLoading(true);
       try {
         const formData = new FormData();
-        formData.append('image', file);
+        formData.append('image', processedFile);
 
         const aiResponse = await apiPostFormData('/api/analyze-book-image', formData);
         console.log('AI response', aiResponse);
