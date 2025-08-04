@@ -11,12 +11,12 @@ export default function Catalog() {
   const searchQuery = new URLSearchParams(location.search).get("search") || "";
 
   useEffect(() => {
-    initialize();
-  }, [initialize]);
-
-  useEffect(() => {
-    searchBooks(searchQuery);
-  }, [searchQuery, searchBooks]);
+    if (searchQuery) {
+      searchBooks(searchQuery);
+    } else {
+      initialize();
+    }
+  }, [searchQuery, initialize, searchBooks]);
 
   if (loading) return <div className="text-center py-8">טוען...</div>;
   if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
