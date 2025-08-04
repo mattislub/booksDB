@@ -1,10 +1,23 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import multer from 'multer';
 import OpenAI from 'openai';
 
 dotenv.config();
 
 const router = express.Router();
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+const allowedTypes = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/webp',
+]);
 
 let openai = null;
 if (process.env.OPENAI_API_KEY) {
@@ -17,7 +30,7 @@ if (process.env.OPENAI_API_KEY) {
 
 router.post(
   '/api/analyze-book-image',
-  express.raw({ type: 'multipart/form-data', limit: '10mb' }),
+  upload.single('image'),
   async (req, res) => {
     if (!openai) {
       return res
@@ -25,40 +38,43 @@ router.post(
         .json({ error: 'OpenAI API key not configured' });
     }
     try {
-      const boundaryMatch = req.headers['content-type']?.match(/boundary=(.*)$/);
-      if (!boundaryMatch) {
-        return res.status(400).json({ error: 'Invalid form data' });
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image provided' });
       }
-      const boundary = Buffer.from(`--${boundaryMatch[1]}`);
-      const body = req.body;
-      let start = body.indexOf(boundary) + boundary.length;
-      start = body.indexOf('\r\n\r\n', start) + 4;
-      const end = body.indexOf(boundary, start);
-      const imageBuffer = body.slice(start, end - 2);
+
+      if (!allowedTypes.has(req.file.mimetype)) {
+        return res.status(415).json({
+          error:
+            'Unsupported image format. Please upload PNG, JPEG, GIF, or WEBP.',
+        });
+      }
+
+      const imageBuffer = req.file.buffer;
 
       console.log(`Received ${imageBuffer.length} bytes for analyze-book-image`);
 
+      const format = req.file.mimetype.split('/')[1];
       const imageBase64 = imageBuffer.toString('base64');
-     const messages = [
-  {
-    role: 'user',
-    content: [
-      {
-        type: 'text',
-          text:
-            'Extract the book title, author, description and ISBN from this book cover. ' +
-            'Respond in JSON with keys "title", "author", "description", "isbn". ' +
-            'The description must be written in Hebrew only.',
+      const messages = [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text:
+                'Extract the book title, author, description and ISBN from this book cover. ' +
+                'Respond in JSON with keys "title", "author", "description", "isbn". ' +
+                'The description must be written in Hebrew only.',
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: `data:image/${format};base64,${imageBase64}`,
+              },
+            },
+          ],
         },
-      {
-        type: 'image_url',
-        image_url: {
-          url: `data:image/jpeg;base64,${imageBase64}`
-        },
-      },
-    ],
-  },
-];
+      ];
 
       const chat = await openai.chat.completions.create({
         model: 'gpt-3o',
