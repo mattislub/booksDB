@@ -45,9 +45,11 @@ export default function PersonalOrders() {
                 </span>
               </div>
               <div className="space-y-2">
-                {order.order_items.map((item) => (
+                {order.order_items?.map((item) => (
                   <div key={item.id} className="flex justify-between">
-                    <span>{item.book.title} (x{item.quantity})</span>
+                    <span>
+                      {item.book ? `${item.book.title} (x${item.quantity})` : `פריט לא זמין (x${item.quantity})`}
+                    </span>
                     <span>{item.price} ₪</span>
                   </div>
                 ))}
