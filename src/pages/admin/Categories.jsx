@@ -89,6 +89,14 @@ export default function Categories() {
     return roots;
   };
 
+  const getDescendantIds = (id) => {
+    const children = categories.filter(cat => cat.parent_id === id);
+    return children.reduce((ids, child) => {
+      ids.push(child.id);
+      return ids.concat(getDescendantIds(child.id));
+    }, []);
+  };
+
   const renderCategory = (category, level = 0) => (
     <div 
       key={category.id}
@@ -127,6 +135,9 @@ export default function Categories() {
   if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
 
   const categoryTree = buildCategoryTree(categories);
+  const disabledIds = selectedCategory
+    ? [selectedCategory.id, ...getDescendantIds(selectedCategory.id)]
+    : [];
 
   return (
     <div className="max-w-4xl mx-auto p-8">
@@ -177,10 +188,10 @@ export default function Categories() {
                 >
                   <option value="">ללא קטגוריית אב</option>
                   {categories.map(cat => (
-                    <option 
-                      key={cat.id} 
+                    <option
+                      key={cat.id}
                       value={cat.id}
-                      disabled={selectedCategory?.id === cat.id}
+                      disabled={disabledIds.includes(cat.id)}
                     >
                       {cat.name}
                     </option>
