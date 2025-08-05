@@ -93,3 +93,53 @@ export async function sendOrderEmail(order, items = []) {
     console.error('Error sending order confirmation email:', err?.message || err);
   }
 }
+
+export async function sendOrderStatusEmail(order) {
+  if (!order?.email) return;
+
+  try {
+    const nodemailer = await import('nodemailer');
+
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.warn('SMTP configuration missing, skipping email send');
+      return;
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+      connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT) || 10000,
+      greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT) || 10000,
+      debug: true,
+    });
+
+    await transporter.verify();
+
+    const statusLabels = {
+      pending: 'ממתין לטיפול',
+      completed: 'הושלם',
+      cancelled: 'בוטל',
+    };
+    const statusText = statusLabels[order.status] || order.status;
+
+    const text = `הזמנתך מספר ${order.id} עודכנה לסטטוס: ${statusText}`;
+    const html = `<p>${text}</p>`;
+
+    await transporter.sendMail({
+      from: process.env.MAIL_FROM || process.env.SMTP_USER,
+      to: order.email,
+      subject: `עדכון סטטוס הזמנה #${order.id}`,
+      text,
+      html,
+    });
+
+    console.log(`Status update email sent to ${order.email} for order #${order.id}`);
+  } catch (err) {
+    console.error('Error sending status update email:', err?.message || err);
+  }
+}
