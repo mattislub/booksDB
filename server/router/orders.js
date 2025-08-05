@@ -47,7 +47,14 @@ router.get('/api/orders', async (req, res) => {
 
     for (const order of orders) {
       const { rows: items } = await pool.query(
-        `SELECT oi.*, b.title FROM order_items oi
+        `SELECT oi.*, json_build_object(
+            'id', b.id,
+            'title', b.title,
+            'author', b.author,
+            'price', b.price,
+            'image_url', b.image_url
+          ) AS book
+         FROM order_items oi
          JOIN books b ON oi.book_id = b.id
          WHERE oi.order_id=$1`,
         [order.id]
