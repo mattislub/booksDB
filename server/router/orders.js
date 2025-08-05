@@ -95,4 +95,30 @@ router.get('/api/admin/orders', async (req, res) => {
   }
 });
 
+router.get('/api/admin/orders', async (req, res) => {
+  try {
+    const user = await getUserFromRequest(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { rows: orders } = await pool.query(
+      'SELECT * FROM orders ORDER BY created_at DESC'
+    );
+
+    for (const order of orders) {
+      const { rows: items } = await pool.query(
+        `SELECT oi.*, b.title FROM order_items oi
+         JOIN books b ON oi.book_id = b.id
+         WHERE oi.order_id=$1`,
+        [order.id]
+      );
+      order.order_items = items;
+    }
+
+    res.json(orders);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
 export default router;
