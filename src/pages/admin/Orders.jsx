@@ -20,8 +20,13 @@ export default function Orders() {
 
   useEffect(() => {
     fetch('/api/admin/orders')
-      .then((res) => {
+      .then(async (res) => {
         console.log('📡 קיבלנו תגובה מהשרת:', res);
+        const contentType = res.headers.get('content-type');
+        if (!res.ok || !contentType || !contentType.includes('application/json')) {
+          const text = await res.text();
+          throw new Error(text || 'Invalid JSON response');
+        }
         return res.json();
       })
       .then((data) => {
