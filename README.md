@@ -14,6 +14,9 @@ Create a `.env` file (you can copy `.env.example`) and set the following variabl
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` – SMTP credentials used to
   send confirmation emails after an order is placed. If these are not set,
   the server will skip sending emails.
+- `SMTP_SECURE`, `SMTP_CONNECTION_TIMEOUT`, `SMTP_GREETING_TIMEOUT`, `MAIL_FROM`
+  – optional settings for the SMTP transport. `SMTP_SECURE` enables TLS when set
+  to `true`; the timeout values are in milliseconds.
 
 The Vite development server also listens on port `3000`. If you plan to run the
 API server and frontend simultaneously, set `PORT` to a different value (for
@@ -86,6 +89,9 @@ This serves the content of the `dist` directory on the port configured in `vite.
    - `DATABASE_URL` – כתובת החיבור למסד הנתונים PostgreSQL.
    - `PORT` – מספר הפורט שעליו ירוץ שרת Express (ברירת מחדל 3000). אם אתם מפעילים גם את שרת Vite במקביל, מומלץ לבחור פורט אחר (למשל 3001).
    - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` – פרטי שרת SMTP לשליחת אימייל אישור אחרי הזמנה. אם אינם מוגדרים, לא יישלח אימייל.
+   - `SMTP_SECURE`, `SMTP_CONNECTION_TIMEOUT`, `SMTP_GREETING_TIMEOUT`, `MAIL_FROM` –
+     הגדרות נוספות אופציונליות לשרת ה‑SMTP (`SMTP_SECURE` מפעיל TLS, ערכי ה־timeout
+     במילישניות).
 
 ### התקנת חבילות
 
