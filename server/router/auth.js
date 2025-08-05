@@ -2,6 +2,7 @@ import express from 'express';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import pool from '../db.js';
+import { buildEmailTemplate } from '../email.js';
 
 export const sessions = {};
 const passwordResetTokens = {};
@@ -43,11 +44,20 @@ async function sendPasswordResetEmail(email, token) {
       }
     });
     const resetUrl = `${process.env.FRONTEND_URL || ''}/reset-password?token=${token}`;
+    const text = `לאיפוס הסיסמה שלך לחץ על הקישור: ${resetUrl}`;
+    const htmlContent = `
+      <h2 style="margin-top:0;">איפוס סיסמה</h2>
+      <p>לחץ על הקישור הבא כדי לאפס את הסיסמה שלך:</p>
+      <p><a href="${resetUrl}">איפוס סיסמה</a></p>
+    `;
+    const html = buildEmailTemplate('איפוס סיסמה', htmlContent);
+    const from = `"תלפיות ספרי קודש" <${process.env.MAIL_FROM || process.env.SMTP_USER}>`;
     await transporter.sendMail({
-      from: process.env.MAIL_FROM || process.env.SMTP_USER,
+      from,
       to: email,
-      subject: 'Password Reset',
-      text: `Click the link to reset your password: ${resetUrl}`
+      subject: 'איפוס סיסמה',
+      text,
+      html
     });
   } catch (err) {
     console.error('Error sending password reset email:', err);
