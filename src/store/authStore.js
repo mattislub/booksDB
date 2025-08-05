@@ -72,6 +72,34 @@ const useAuthStore = create((set) => ({
     }
   },
 
+  requestPasswordReset: async (email) => {
+    try {
+      set({ loading: true, error: null });
+      await apiPost('/api/auth/request-password-reset', { email });
+      set({ loading: false });
+      return { success: true };
+    } catch (error) {
+      console.error('Error in requestPasswordReset:', error);
+      const message = error?.message || 'שגיאה בשליחת קישור';
+      set({ error: message, loading: false });
+      return { success: false, error };
+    }
+  },
+
+  resetPassword: async (token, password) => {
+    try {
+      set({ loading: true, error: null });
+      await apiPost('/api/auth/reset-password', { token, password });
+      set({ loading: false });
+      return { success: true };
+    } catch (error) {
+      console.error('Error in resetPassword:', error);
+      const message = error?.message || 'שגיאה באיפוס הסיסמה';
+      set({ error: message, loading: false });
+      return { success: false, error };
+    }
+  },
+
   signOut: async () => {
     try {
       await apiPost('/api/auth/logout', {});
