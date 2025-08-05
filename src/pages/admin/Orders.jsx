@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Search, Filter, ChevronDown } from 'lucide-react';
+import { apiGet } from '../../lib/apiClient';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -19,16 +20,7 @@ export default function Orders() {
   const [filterStatus, setFilterStatus] = useState('all');
 
   useEffect(() => {
-    fetch('/api/admin/orders')
-      .then(async (res) => {
-        console.log('📡 קיבלנו תגובה מהשרת:', res);
-        const contentType = res.headers.get('content-type');
-        if (!res.ok || !contentType || !contentType.includes('application/json')) {
-          const text = await res.text();
-          throw new Error(text || 'Invalid JSON response');
-        }
-        return res.json();
-      })
+    apiGet('/api/admin/orders')
       .then((data) => {
         console.log('📦 נתונים גולמיים מהשרת:', data);
 
