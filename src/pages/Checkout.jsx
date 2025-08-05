@@ -63,7 +63,15 @@ export default function Checkout() {
     setStatus('שולח הזמנה...');
 
     try {
-      await apiPost("/api/orders", { user_id: user.id, items, total: getTotal(), shipping_address: formData.address, phone: formData.phone, notes: formData.notes, email: formData.email, name: formData.name });
+      await apiPost("/api/orders", {
+        items,
+        total: getTotal(),
+        shipping_address: formData.address,
+        phone: formData.phone,
+        notes: formData.notes,
+        email: formData.email,
+        name: formData.name
+      });
 
       setStatus("ההזמנה התקבלה בהצלחה!");
       clearCart();

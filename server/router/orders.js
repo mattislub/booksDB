@@ -8,14 +8,16 @@ const router = express.Router();
 router.post('/api/orders', async (req, res) => {
   try {
     const user = await getUserFromRequest(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
-
     const { items = [], total, shipping_address, phone, notes, email, name } = req.body;
+
+    if (!user && (!phone || !email)) {
+      return res.status(400).json({ error: 'Phone and email required' });
+    }
 
     const { rows } = await pool.query(
       `INSERT INTO orders (user_id, total, name, email, phone, shipping_address, notes)
        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [user.id, total, name || null, email || null, phone || null, shipping_address || null, notes || null]
+      [user ? user.id : null, total, name || null, email || null, phone || null, shipping_address || null, notes || null]
     );
     const order = rows[0];
 
