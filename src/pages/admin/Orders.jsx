@@ -190,7 +190,7 @@ export default function Orders() {
                     apiPost(`/api/admin/orders/${selectedOrder.id}/status`, { status: statusUpdate })
                       .then(updated => {
                         setOrders(prev => prev.map(o => o.id === updated.id ? { ...o, status: updated.status } : o));
-                        setSelectedOrder(prev => ({ ...prev, status: updated.status }));
+                        setSelectedOrder(null);
                       })
                       .catch(err => console.error('❌ שגיאה בעדכון סטטוס:', err));
                   }}

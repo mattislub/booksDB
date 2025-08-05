@@ -1,7 +1,7 @@
 import express from 'express';
 import pool from '../db.js';
 import { getUserFromRequest } from './auth.js';
-import { sendOrderEmail } from '../email.js';
+import { sendOrderEmail, sendOrderStatusEmail } from '../email.js';
 
 const router = express.Router();
 
@@ -111,6 +111,8 @@ router.post('/api/admin/orders/:id/status', async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
+
+    await sendOrderStatusEmail(rows[0]);
 
     res.json(rows[0]);
   } catch (err) {
