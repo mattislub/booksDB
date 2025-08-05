@@ -1,29 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Package, Search, Filter, ChevronDown } from 'lucide-react';
-
-const mockOrders = [
-  {
-    id: '1',
-    date: '2024-03-27',
-    customer: 'ישראל ישראלי',
-    total: 350,
-    status: 'pending',
-    items: [
-      { title: 'שולחן ערוך', quantity: 1, price: 120 },
-      { title: 'משנה ברורה', quantity: 2, price: 115 }
-    ]
-  },
-  {
-    id: '2',
-    date: '2024-03-26',
-    customer: 'יעקב כהן',
-    total: 250,
-    status: 'completed',
-    items: [
-      { title: 'סידור תפילה', quantity: 1, price: 250 }
-    ]
-  }
-];
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -38,7 +14,27 @@ const statusLabels = {
 };
 
 export default function Orders() {
-  const [orders] = useState(mockOrders);
+  const [orders, setOrders] = useState([]);
+  useEffect(() => {
+    fetch('/api/admin/orders')
+      .then((res) => res.json())
+      .then((data) => {
+        const formatted = data.map((o) => ({
+          id: o.id,
+          date: o.created_at,
+          customer: o.name || o.email || `משתמש ${o.user_id}`,
+          total: Number(o.total),
+          status: o.status,
+          items: o.order_items.map((item) => ({
+            title: item.title,
+            quantity: item.quantity,
+            price: Number(item.price),
+          })),
+        }));
+        setOrders(formatted);
+      })
+      .catch((err) => console.error('Failed to fetch orders', err));
+  }, []);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
 
