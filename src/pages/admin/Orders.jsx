@@ -15,38 +15,48 @@ const statusLabels = {
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all');
+
   useEffect(() => {
     fetch('/api/admin/orders')
-      .then((res) => res.json())
+      .then((res) => {
+        console.log('📡 קיבלנו תגובה מהשרת:', res);
+        return res.json();
+      })
       .then((data) => {
+        console.log('📦 נתונים גולמיים מהשרת:', data);
+
         const formatted = data.map((o) => ({
           id: o.id,
           date: o.created_at,
           customer: o.name || o.email || `משתמש ${o.user_id}`,
           total: Number(o.total),
           status: o.status,
-          items: o.order_items.map((item) => ({
+          items: (o.order_items || []).map((item) => ({
             title: item.title,
             quantity: item.quantity,
             price: Number(item.price),
           })),
         }));
+
+        console.log('✅ נתונים אחרי עיבוד:', formatted);
         setOrders(formatted);
       })
-      .catch((err) => console.error('Failed to fetch orders', err));
+      .catch((err) => console.error('❌ שגיאה בשליפת הזמנות:', err));
   }, []);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [filterStatus, setFilterStatus] = useState('all');
 
-  const filteredOrders = orders.filter(order => 
+  const filteredOrders = orders.filter(order =>
     filterStatus === 'all' || order.status === filterStatus
   );
+
+  console.log('🔎 הזמנות לאחר סינון:', filteredOrders);
 
   return (
     <div className="max-w-7xl mx-auto p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-[#112a55]">ניהול הזמנות</h1>
-        
+
         <div className="flex gap-4">
           <div className="relative">
             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -56,7 +66,7 @@ export default function Orders() {
               className="pr-10 pl-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#a48327] focus:border-transparent outline-none"
             />
           </div>
-          
+
           <div className="relative">
             <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <select
@@ -88,7 +98,7 @@ export default function Orders() {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {filteredOrders.map((order) => (
-              <tr 
+              <tr
                 key={order.id}
                 className="hover:bg-gray-50 cursor-pointer"
                 onClick={() => setSelectedOrder(order)}
@@ -108,9 +118,7 @@ export default function Orders() {
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  <button className="text-[#a48327] hover:text-[#8b6f1f]">
-                    פרטים
-                  </button>
+                  <button className="text-[#a48327] hover:text-[#8b6f1f]">פרטים</button>
                 </td>
               </tr>
             ))}
@@ -122,15 +130,8 @@ export default function Orders() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl p-6 max-w-2xl w-full">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-[#112a55]">
-                הזמנה #{selectedOrder.id}
-              </h2>
-              <button 
-                onClick={() => setSelectedOrder(null)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
+              <h2 className="text-2xl font-bold text-[#112a55]">הזמנה #{selectedOrder.id}</h2>
+              <button onClick={() => setSelectedOrder(null)} className="text-gray-500 hover:text-gray-700">✕</button>
             </div>
 
             <div className="space-y-6">
@@ -165,12 +166,8 @@ export default function Orders() {
               </div>
 
               <div className="flex justify-end gap-4">
-                <button className="px-4 py-2 border rounded hover:bg-gray-50">
-                  הדפס
-                </button>
-                <button className="px-4 py-2 bg-[#a48327] text-white rounded hover:bg-[#8b6f1f]">
-                  עדכן סטטוס
-                </button>
+                <button className="px-4 py-2 border rounded hover:bg-gray-50">הדפס</button>
+                <button className="px-4 py-2 bg-[#a48327] text-white rounded hover:bg-[#8b6f1f]">עדכן סטטוס</button>
               </div>
             </div>
           </div>
