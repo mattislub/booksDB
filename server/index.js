@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { logError } from './logger.js';
+import pool from './db.js';
 
 import analyzeRouter from './router/analyze.js';
 import authRouter from './router/auth.js';
@@ -47,12 +48,36 @@ app.use(setupRouter);
 
 const PORT = process.env.PORT || 3000;
 
-// Error handler
-app.use((err, req, res, next) => {
-  logError(err);
-  res.status(500).json({ error: 'Server error' });
-});
+async function ensureImageUrlsColumn() {
+  try {
+    await pool.query(
+      'ALTER TABLE books ADD COLUMN IF NOT EXISTS image_urls TEXT[]'
+    );
+  } catch (err) {
+    // Ignore if the books table does not exist yet or we lack privileges
+    if (err.code !== '42P01' && err.code !== '42501') {
+      throw err;
+    }
+  }
+}
 
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+async function start() {
+  try {
+    await ensureImageUrlsColumn();
+
+    // Error handler
+    app.use((err, req, res, next) => {
+      logError(err);
+      res.status(500).json({ error: 'Server error' });
+    });
+
+    app.listen(PORT, () => {
+      console.log(`Server listening on port ${PORT}`);
+    });
+  } catch (err) {
+    logError(err);
+    process.exit(1);
+  }
+}
+
+start();
