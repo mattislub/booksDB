@@ -31,9 +31,9 @@ export default function Catalog() {
             key={book.id}
             className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col transform transition-transform duration-300 hover:scale-105"
           >
-            {book.image_url ? (
+            {book.image_urls?.[0] || book.image_url ? (
               <img
-                src={book.image_url}
+                src={book.image_urls?.[0] || book.image_url}
                 alt={book.title}
                 className="w-full h-[300px] object-contain bg-white rounded-t-2xl"
               />

@@ -26,6 +26,7 @@ export default function Products() {
       price: '',
       categories: [],
       image_url: '',
+      additional_images: '',
       availability: 'available',
       isbn: '',
       publisher: '',
@@ -66,20 +67,32 @@ export default function Products() {
     e.preventDefault();
     if (!validateForm()) return;
 
+    const imageUrls = [
+      formData.image_url,
+      ...formData.additional_images
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+    ].filter(Boolean);
+
     const bookData = {
       ...formData,
+      image_url: imageUrls[0] || '',
+      image_urls: imageUrls,
       price: Number(formData.price),
       stock: Number(formData.stock),
       pages: formData.pages ? Number(formData.pages) : null,
       publication_year: formData.publication_year ? Number(formData.publication_year) : null
     };
 
+    delete bookData.additional_images;
+
     if (selectedBook) {
       updateBook(selectedBook.id, bookData);
     } else {
       addBook(bookData);
     }
-    
+
     setIsModalOpen(false);
     setSelectedBook(null);
     resetForm();
@@ -93,6 +106,7 @@ export default function Products() {
         price: '',
         categories: [],
         image_url: '',
+        additional_images: '',
         availability: 'available',
         isbn: '',
         publisher: '',
@@ -121,7 +135,8 @@ export default function Products() {
         description: book.description || '',
         price: book.price?.toString() || '',
         categories: selected,
-        image_url: book.image_url || '',
+        image_url: book.image_urls?.[0] || book.image_url || '',
+        additional_images: book.image_urls?.slice(1).join(',') || '',
         availability: book.availability || 'available',
         isbn: book.isbn || '',
         publisher: book.publisher || '',
@@ -135,7 +150,7 @@ export default function Products() {
         is_new_arrival: book.is_new_arrival || false,
         is_new_in_market: book.is_new_in_market || false
       });
-      setImagePreview(book.image_url || '');
+      setImagePreview(book.image_urls?.[0] || book.image_url || '');
       setIsModalOpen(true);
     };
 
@@ -192,9 +207,9 @@ export default function Products() {
         {filteredBooks.map((book) => (
           <div key={book.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
             <div className="aspect-w-3 aspect-h-4 bg-gray-100">
-              {book.image_url ? (
+              {book.image_urls?.[0] || book.image_url ? (
                 <img
-                  src={book.image_url}
+                  src={book.image_urls?.[0] || book.image_url}
                   alt={book.title}
                   className="w-full h-48 object-contain"
                 />
@@ -484,6 +499,17 @@ export default function Products() {
                     />
                   )}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-1">תמונות נוספות (מופרדות בפסיק)</label>
+                <input
+                  type="text"
+                  value={formData.additional_images}
+                  onChange={(e) => setFormData({ ...formData, additional_images: e.target.value })}
+                  className="w-full border rounded-lg p-2"
+                  placeholder="קישורים נוספים"
+                />
               </div>
 
               <div>

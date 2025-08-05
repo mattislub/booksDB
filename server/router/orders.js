@@ -52,7 +52,8 @@ router.get('/api/orders', async (req, res) => {
             'title', b.title,
             'author', b.author,
             'price', b.price,
-            'image_url', b.image_url
+            'image_url', b.image_url,
+            'image_urls', b.image_urls
           ) AS book
          FROM order_items oi
          JOIN books b ON oi.book_id = b.id

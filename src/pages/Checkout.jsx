@@ -196,7 +196,11 @@ export default function Checkout() {
             {items.map(item => (
               <div key={item.id} className="flex gap-4 border-b pb-4">
                 <img
-                  src={item.image_url || `https://via.placeholder.com/100x150.png?text=${encodeURIComponent(item.title)}`}
+                  src={
+                    item.image_urls?.[0] ||
+                    item.image_url ||
+                    `https://via.placeholder.com/100x150.png?text=${encodeURIComponent(item.title)}`
+                  }
                   alt={item.title}
                   className="w-20 h-28 object-contain bg-white rounded"
                 />

@@ -12,6 +12,7 @@ export default function AdminBookManager() {
     price: "",
     availability: "available",
     image_url: "",
+    additional_images: "",
     categories: []
   });
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,9 +28,23 @@ export default function AdminBookManager() {
     setMessage("");
 
     try {
-      const result = formData.id 
-        ? await updateBook(formData.id, formData)
-        : await addBook(formData);
+      const imageUrls = [
+        formData.image_url,
+        ...formData.additional_images
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean)
+      ].filter(Boolean);
+      const payload = {
+        ...formData,
+        image_url: imageUrls[0] || '',
+        image_urls: imageUrls,
+      };
+      delete payload.additional_images;
+
+      const result = formData.id
+        ? await updateBook(formData.id, payload)
+        : await addBook(payload);
 
       if (result.success) {
         setMessage(formData.id ? "✅ הספר עודכן בהצלחה!" : "✅ הספר נוסף בהצלחה!");
@@ -40,6 +55,7 @@ export default function AdminBookManager() {
           price: "",
           availability: "available",
           image_url: "",
+          additional_images: "",
           categories: []
         });
       } else {
@@ -67,7 +83,8 @@ export default function AdminBookManager() {
       description: book.description || "",
       price: book.price?.toString() || "",
       availability: book.availability || "available",
-      image_url: book.image_url || "",
+      image_url: book.image_urls?.[0] || book.image_url || "",
+      additional_images: book.image_urls?.slice(1).join(',') || "",
       categories: selected
     });
   };
@@ -168,6 +185,15 @@ export default function AdminBookManager() {
           className="w-full border px-3 py-2 rounded"
         />
 
+        <input
+          type="text"
+          name="additional_images"
+          value={formData.additional_images}
+          onChange={handleChange}
+          placeholder="קישורי תמונות נוספים (מופרדים בפסיק)"
+          className="w-full border px-3 py-2 rounded"
+        />
+
         <div>
           <label className="block text-gray-700 mb-1">קטגוריות</label>
           <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border p-2 rounded">
@@ -229,9 +255,9 @@ export default function AdminBookManager() {
                 </button>
               </div>
             </div>
-            {book.image_url && (
+            {(book.image_urls?.[0] || book.image_url) && (
               <img
-                src={book.image_url}
+                src={book.image_urls?.[0] || book.image_url}
                 alt={book.title}
                 className="w-32 h-40 object-contain bg-white rounded mb-2"
               />

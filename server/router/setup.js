@@ -50,6 +50,7 @@ router.post('/api/setup', async (req, res) => {
       description TEXT,
       price NUMERIC(10,2),
       image_url TEXT,
+      image_urls TEXT[],
       availability TEXT DEFAULT 'available',
       isbn TEXT,
       publisher TEXT,
@@ -65,6 +66,8 @@ router.post('/api/setup', async (req, res) => {
       created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     )`);
+
+    await pool.query(`ALTER TABLE books ADD COLUMN IF NOT EXISTS image_urls TEXT[]`);
 
     await pool.query(`CREATE TABLE IF NOT EXISTS book_categories (
       book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,

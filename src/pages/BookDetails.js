@@ -36,9 +36,9 @@ export default function BookDetails() {
         ← חזור לקטלוג
       </Link>
       <div className="bg-white shadow rounded-lg p-6 flex flex-col md:flex-row gap-6">
-        {book.image_url ? (
+        {book.image_urls?.[0] || book.image_url ? (
           <img
-            src={`${API_BASE}${book.image_url}`}
+            src={`${API_BASE}${book.image_urls?.[0] || book.image_url}`}
             alt={book.title}
             className="w-full md:w-1/3 h-64 object-contain rounded"
           />

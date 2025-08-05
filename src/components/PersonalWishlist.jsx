@@ -65,7 +65,11 @@ export default function PersonalWishlist() {
           {wishlist.map((item) => (
             <div key={item.id} className="flex items-center gap-4 border rounded-lg p-4 hover:shadow-lg transition-shadow">
               <img
-                src={item.book.image_url || `https://via.placeholder.com/200x300.png?text=${encodeURIComponent(item.book.title)}`}
+                src={
+                  item.book.image_urls?.[0] ||
+                  item.book.image_url ||
+                  `https://via.placeholder.com/200x300.png?text=${encodeURIComponent(item.book.title)}`
+                }
                 alt={item.book.title}
                 className="w-20 h-28 object-contain rounded"
               />

@@ -42,7 +42,11 @@ function CategoryBooks({ books, categoryName, onClose }) {
               >
                 <div className="flex gap-4">
                   <img
-                    src={book.image_url || `https://via.placeholder.com/100x150.png?text=${encodeURIComponent(book.title)}`}
+                    src={
+                      book.image_urls?.[0] ||
+                      book.image_url ||
+                      `https://via.placeholder.com/100x150.png?text=${encodeURIComponent(book.title)}`
+                    }
                     alt={book.title}
                     className="w-24 h-32 object-contain bg-white rounded"
                   />
@@ -178,7 +182,11 @@ export default function CategoriesView() {
             >
               <div className="flex gap-4">
                 <img
-                  src={book.image_url || `https://via.placeholder.com/100x150.png?text=${encodeURIComponent(book.title)}`}
+                  src={
+                    book.image_urls?.[0] ||
+                    book.image_url ||
+                    `https://via.placeholder.com/100x150.png?text=${encodeURIComponent(book.title)}`
+                  }
                   alt={book.title}
                   className="w-24 h-32 object-contain bg-white rounded"
                 />

@@ -120,7 +120,11 @@ export const NewOnSite = () => {
           >
             <Link to={`/books/${book.id}`}>
               <img
-                src={book.image_url || `https://via.placeholder.com/300x400.png?text=${encodeURIComponent(book.title)}`}
+                src={
+                  book.image_urls?.[0] ||
+                  book.image_url ||
+                  `https://via.placeholder.com/300x400.png?text=${encodeURIComponent(book.title)}`
+                }
                 alt={book.title}
                 className="w-full h-32 object-contain bg-white rounded-lg shadow group-hover:opacity-90 transition-opacity"
               />
