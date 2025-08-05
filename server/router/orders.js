@@ -48,14 +48,21 @@ router.get('/api/orders', async (req, res) => {
     );
 
     for (const order of orders) {
+      const { rows: col } = await pool.query(
+        `SELECT column_name FROM information_schema.columns
+         WHERE table_name='books' AND column_name='image_urls'`
+      );
+      const hasImageUrls = col.length > 0;
+      const imageFields = hasImageUrls
+        ? "'image_url', b.image_url, 'image_urls', b.image_urls"
+        : "'image_url', b.image_url";
       const { rows: items } = await pool.query(
         `SELECT oi.*, json_build_object(
             'id', b.id,
             'title', b.title,
             'author', b.author,
             'price', b.price,
-            'image_url', b.image_url,
-            'image_urls', b.image_urls
+            ${imageFields}
           ) AS book
          FROM order_items oi
          JOIN books b ON oi.book_id = b.id
