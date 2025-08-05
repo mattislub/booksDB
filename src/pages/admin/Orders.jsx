@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Search, Filter, ChevronDown } from 'lucide-react';
-import { apiGet } from '../../lib/apiClient';
+import { apiGet, apiPost } from '../../lib/apiClient';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -18,6 +18,7 @@ export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [statusUpdate, setStatusUpdate] = useState('pending');
 
   useEffect(() => {
     apiGet('/api/admin/orders')
@@ -27,7 +28,9 @@ export default function Orders() {
         const formatted = data.map((o) => ({
           id: o.id,
           date: o.created_at,
-          customer: o.name || o.email || `משתמש ${o.user_id}`,
+          customerName: o.name || o.email || `משתמש ${o.user_id}`,
+          email: o.email,
+          phone: o.phone,
           total: Number(o.total),
           status: o.status,
           items: (o.order_items || []).map((item) => ({
@@ -88,6 +91,8 @@ export default function Orders() {
               <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600">מספר הזמנה</th>
               <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600">תאריך</th>
               <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600">לקוח</th>
+              <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600">אימייל</th>
+              <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600">טלפון</th>
               <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600">סכום</th>
               <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600">סטטוס</th>
               <th className="px-6 py-3 text-right text-sm font-semibold text-gray-600">פעולות</th>
@@ -98,7 +103,10 @@ export default function Orders() {
               <tr
                 key={order.id}
                 className="hover:bg-gray-50 cursor-pointer"
-                onClick={() => setSelectedOrder(order)}
+                onClick={() => {
+                  setSelectedOrder(order);
+                  setStatusUpdate(order.status);
+                }}
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
@@ -107,7 +115,9 @@ export default function Orders() {
                   </div>
                 </td>
                 <td className="px-6 py-4">{new Date(order.date).toLocaleDateString('he-IL')}</td>
-                <td className="px-6 py-4">{order.customer}</td>
+                <td className="px-6 py-4">{order.customerName}</td>
+                <td className="px-6 py-4">{order.email || '-'}</td>
+                <td className="px-6 py-4">{order.phone || '-'}</td>
                 <td className="px-6 py-4">{order.total} ₪</td>
                 <td className="px-6 py-4">
                   <span className={`px-3 py-1 rounded-full text-sm ${statusColors[order.status]}`}>
@@ -135,7 +145,9 @@ export default function Orders() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-semibold mb-2">פרטי לקוח</h3>
-                  <p>{selectedOrder.customer}</p>
+                  {selectedOrder.customerName && <p>{selectedOrder.customerName}</p>}
+                  {selectedOrder.email && <p>{selectedOrder.email}</p>}
+                  {selectedOrder.phone && <p>{selectedOrder.phone}</p>}
                 </div>
                 <div>
                   <h3 className="font-semibold mb-2">תאריך הזמנה</h3>
@@ -164,7 +176,28 @@ export default function Orders() {
 
               <div className="flex justify-end gap-4">
                 <button className="px-4 py-2 border rounded hover:bg-gray-50">הדפס</button>
-                <button className="px-4 py-2 bg-[#a48327] text-white rounded hover:bg-[#8b6f1f]">עדכן סטטוס</button>
+                <select
+                  value={statusUpdate}
+                  onChange={(e) => setStatusUpdate(e.target.value)}
+                  className="px-3 py-2 border rounded"
+                >
+                  <option value="pending">ממתין לטיפול</option>
+                  <option value="completed">הושלם</option>
+                  <option value="cancelled">בוטל</option>
+                </select>
+                <button
+                  onClick={() => {
+                    apiPost(`/api/admin/orders/${selectedOrder.id}/status`, { status: statusUpdate })
+                      .then(updated => {
+                        setOrders(prev => prev.map(o => o.id === updated.id ? { ...o, status: updated.status } : o));
+                        setSelectedOrder(prev => ({ ...prev, status: updated.status }));
+                      })
+                      .catch(err => console.error('❌ שגיאה בעדכון סטטוס:', err));
+                  }}
+                  className="px-4 py-2 bg-[#a48327] text-white rounded hover:bg-[#8b6f1f]"
+                >
+                  עדכן סטטוס
+                </button>
               </div>
             </div>
           </div>

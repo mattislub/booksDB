@@ -95,4 +95,25 @@ router.get('/api/admin/orders', async (_req, res) => {
   }
 });
 
+router.post('/api/admin/orders/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const { rows } = await pool.query(
+      'UPDATE orders SET status=$1 WHERE id=$2 RETURNING *',
+      [status, id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
 export default router;
