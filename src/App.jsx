@@ -8,6 +8,7 @@ import NotFound from "./components/NotFound";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import PersonalArea from "./pages/PersonalArea";
 import Checkout from "./pages/Checkout";
 import Terms from "./pages/Terms";
@@ -57,6 +58,7 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/personal/*" element={<PersonalArea />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/terms" element={<Terms />} />
