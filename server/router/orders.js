@@ -68,6 +68,9 @@ router.get('/api/orders', async (req, res) => {
     res.json(orders);
   } catch (err) {
     console.error(err);
+    if (err.code === '42P01') {
+      return res.json([]);
+    }
     res.status(500).json({ error: 'Database error' });
   }
 });
