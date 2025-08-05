@@ -108,7 +108,6 @@ router.post('/api/books', async (req, res) => {
       description: description || null,
       price: parseFloatOrNull(price),
       image_url: imageUrls[0] || null,
-      image_urls: imageUrls,
       availability: availability || 'available',
       isbn: isbn || null,
       publisher: publisher || null,
@@ -122,36 +121,66 @@ router.post('/api/books', async (req, res) => {
       is_new_arrival: Boolean(is_new_arrival),
       is_new_in_market: Boolean(is_new_in_market),
     };
-
-    const { rows } = await pool.query(
-      `INSERT INTO books (
-        title, author, description, price, image_url, image_urls, availability,
-        isbn, publisher, publication_year, pages, language, binding,
-        dimensions, weight, stock, is_new_arrival, is_new_in_market
-      ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18
-      ) RETURNING *`,
-      [
-        sanitized.title,
-        sanitized.author,
-        sanitized.description,
-        sanitized.price,
-        sanitized.image_url,
-        sanitized.image_urls,
-        sanitized.availability,
-        sanitized.isbn,
-        sanitized.publisher,
-        sanitized.publication_year,
-        sanitized.pages,
-        sanitized.language,
-        sanitized.binding,
-        sanitized.dimensions,
-        sanitized.weight,
-        sanitized.stock,
-        sanitized.is_new_arrival,
-        sanitized.is_new_in_market,
-      ]
+    const { rows: col } = await pool.query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_name='books' AND column_name='image_urls'`
     );
+    const hasImageUrls = col.length > 0;
+
+    const columns = [
+      'title',
+      'author',
+      'description',
+      'price',
+      'image_url'
+    ];
+    const values = [
+      sanitized.title,
+      sanitized.author,
+      sanitized.description,
+      sanitized.price,
+      sanitized.image_url
+    ];
+
+    if (hasImageUrls) {
+      columns.push('image_urls');
+      values.push(imageUrls);
+    }
+
+    columns.push(
+      'availability',
+      'isbn',
+      'publisher',
+      'publication_year',
+      'pages',
+      'language',
+      'binding',
+      'dimensions',
+      'weight',
+      'stock',
+      'is_new_arrival',
+      'is_new_in_market'
+    );
+
+    values.push(
+      sanitized.availability,
+      sanitized.isbn,
+      sanitized.publisher,
+      sanitized.publication_year,
+      sanitized.pages,
+      sanitized.language,
+      sanitized.binding,
+      sanitized.dimensions,
+      sanitized.weight,
+      sanitized.stock,
+      sanitized.is_new_arrival,
+      sanitized.is_new_in_market
+    );
+
+    const placeholders = columns.map((_, idx) => `$${idx + 1}`).join(',');
+    const query = `INSERT INTO books (${columns.join(',')}) VALUES (${placeholders}) RETURNING *`;
+
+    const { rows } = await pool.query(query, values);
 
     const book = rows[0];
     console.log('Inserted book', book);
@@ -232,7 +261,6 @@ router.post('/api/books/:id', async (req, res) => {
       description: description || null,
       price: parseFloatOrNull(price),
       image_url: imageUrls[0] || null,
-      image_urls: imageUrls,
       availability: availability || 'available',
       isbn: isbn || null,
       publisher: publisher || null,
@@ -247,50 +275,60 @@ router.post('/api/books/:id', async (req, res) => {
       is_new_in_market: Boolean(is_new_in_market),
     };
 
-    const { rows } = await pool.query(
-      `UPDATE books SET
-        title=$1,
-        author=$2,
-        description=$3,
-        price=$4,
-        image_url=$5,
-        image_urls=$6,
-        availability=$7,
-        isbn=$8,
-        publisher=$9,
-        publication_year=$10,
-        pages=$11,
-        language=$12,
-        binding=$13,
-        dimensions=$14,
-        weight=$15,
-        stock=$16,
-        is_new_arrival=$17,
-        is_new_in_market=$18,
-        updated_at=NOW()
-      WHERE id=$19 RETURNING *`,
-      [
-        sanitized.title,
-        sanitized.author,
-        sanitized.description,
-        sanitized.price,
-        sanitized.image_url,
-        sanitized.image_urls,
-        sanitized.availability,
-        sanitized.isbn,
-        sanitized.publisher,
-        sanitized.publication_year,
-        sanitized.pages,
-        sanitized.language,
-        sanitized.binding,
-        sanitized.dimensions,
-        sanitized.weight,
-        sanitized.stock,
-        sanitized.is_new_arrival,
-        sanitized.is_new_in_market,
-        id,
-      ]
+    const { rows: col } = await pool.query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_name='books' AND column_name='image_urls'`
     );
+    const hasImageUrls = col.length > 0;
+
+    const sets = [
+      'title=$1',
+      'author=$2',
+      'description=$3',
+      'price=$4',
+      'image_url=$5'
+    ];
+    const values = [
+      sanitized.title,
+      sanitized.author,
+      sanitized.description,
+      sanitized.price,
+      sanitized.image_url
+    ];
+    let idx = values.length + 1;
+
+    if (hasImageUrls) {
+      sets.push(`image_urls=$${idx}`);
+      values.push(imageUrls);
+      idx++;
+    }
+
+    const remainingSets = [
+      'availability',
+      'isbn',
+      'publisher',
+      'publication_year',
+      'pages',
+      'language',
+      'binding',
+      'dimensions',
+      'weight',
+      'stock',
+      'is_new_arrival',
+      'is_new_in_market'
+    ];
+
+    for (const field of remainingSets) {
+      sets.push(`${field}=$${idx}`);
+      values.push(sanitized[field]);
+      idx++;
+    }
+
+    sets.push('updated_at=NOW()');
+    const query = `UPDATE books SET ${sets.join(', ')} WHERE id=$${idx} RETURNING *`;
+    values.push(id);
+
+    const { rows } = await pool.query(query, values);
     if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
 
     const book = rows[0];
