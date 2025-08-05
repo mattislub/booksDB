@@ -50,6 +50,7 @@ export default function PersonalOrders() {
                     {item.book && (
                       <img
                         src={
+                          item.book.image_urls?.[0] ||
                           item.book.image_url ||
                           `https://via.placeholder.com/60x90.png?text=${encodeURIComponent(item.book.title)}`
                         }

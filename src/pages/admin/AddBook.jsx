@@ -33,6 +33,7 @@ export default function AddBook() {
     description: '',
     price: '',
     image_url: '',
+    additional_images: '',
     availability: 'available',
     isbn: '',
     publisher: '',
@@ -105,9 +106,18 @@ export default function AddBook() {
         });
       }
 
+      const imageUrls = [
+        imageUrl,
+        ...bookData.additional_images
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean)
+      ].filter(Boolean);
+
       const finalBookData = {
         ...bookData,
-        image_url: imageUrl,
+        image_url: imageUrls[0] || '',
+        image_urls: imageUrls,
         categories: selectedCategories
       };
 
@@ -124,6 +134,7 @@ export default function AddBook() {
         description: '',
         price: '',
         image_url: '',
+        additional_images: '',
         availability: 'available',
         isbn: '',
         publisher: '',
@@ -240,6 +251,16 @@ export default function AddBook() {
                 />
               </div>
             )}
+
+            <div className="md:col-span-2">
+              <label className="block text-gray-700 mb-1">קישורי תמונות נוספים (מופרדים בפסיק)</label>
+              <input
+                type="text"
+                value={bookData.additional_images}
+                onChange={(e) => setBookData({ ...bookData, additional_images: e.target.value })}
+                className="w-full border rounded-lg p-2"
+              />
+            </div>
 
             <div>
               <label className="block text-gray-700 mb-1">שם הספר *</label>

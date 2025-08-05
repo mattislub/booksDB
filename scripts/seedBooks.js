@@ -6,7 +6,7 @@ const books = [
     author: "רבי יוסף קארו",
     description: "ספר יסוד בהלכה",
     price: 120,
-    image_url: "/Uploads/shulchan_aruch.jpg",
+    image_urls: ["/Uploads/shulchan_aruch.jpg"],
     category: "הלכה"
   },
   {
@@ -14,7 +14,7 @@ const books = [
     author: "החפץ חיים",
     description: "ביאור להלכות שו\"ע",
     price: 110,
-    image_url: "/Uploads/mishna_berura.jpg",
+    image_urls: ["/Uploads/mishna_berura.jpg"],
     category: "הלכה"
   },
   {
@@ -22,7 +22,7 @@ const books = [
     author: "",
     description: "התנ\"ך בניקוד מלא",
     price: 80,
-    image_url: "/Uploads/tanach_koren.jpg",
+    image_urls: ["/Uploads/tanach_koren.jpg"],
     category: "תנ\"ך"
   },
   {
@@ -30,7 +30,7 @@ const books = [
     author: "האר\"י",
     description: "יסודות הקבלה",
     price: 130,
-    image_url: "/Uploads/torat_hanistar.jpg",
+    image_urls: ["/Uploads/torat_hanistar.jpg"],
     category: "קבלה"
   },
   {
@@ -38,7 +38,7 @@ const books = [
     author: "הרב אליהו קפלן",
     description: "חגים ומועדים",
     price: 90,
-    image_url: "/Uploads/sefer_hatoda.jpg",
+    image_urls: ["/Uploads/sefer_hatoda.jpg"],
     category: "מחשבה"
   },
   {
@@ -46,7 +46,7 @@ const books = [
     author: "לא נודע",
     description: "טעמי המצוות",
     price: 100,
-    image_url: "/Uploads/sefer_hachinuch.jpg",
+    image_urls: ["/Uploads/sefer_hachinuch.jpg"],
     category: "מצוות"
   },
   {
@@ -54,7 +54,7 @@ const books = [
     author: "תלמיד מהר\"י וייל",
     description: "פסקים ומנהגים",
     price: 85,
-    image_url: "/uploads/leketyosher.jpg",
+    image_urls: ["/uploads/leketyosher.jpg"],
     category: "הלכה"
   },
   {
@@ -62,7 +62,7 @@ const books = [
     author: "הרב קוק",
     description: "פילוסופיה יהודית",
     price: 95,
-    image_url: "/Uploads/orot.jpg",
+    image_urls: ["/Uploads/orot.jpg"],
     category: "מחשבה"
   },
   {
@@ -70,7 +70,7 @@ const books = [
     author: "שונים",
     description: "סיפורי השראה לילדים",
     price: 60,
-    image_url: "/Uploads/sipurei_tzadikim.jpg",
+    image_urls: ["/Uploads/sipurei_tzadikim.jpg"],
     category: "לילדים"
   },
   {
@@ -78,7 +78,7 @@ const books = [
     author: "נוסח ספרד",
     description: "סידור יומי",
     price: 50,
-    image_url: "/Uploads/siddur_tefilla.jpg",
+    image_urls: ["/Uploads/siddur_tefilla.jpg"],
     category: "תפילה"
   }
 ];

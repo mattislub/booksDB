@@ -31,12 +31,28 @@ export default function BookDetails() {
       <div className="bg-white shadow-xl rounded-2xl overflow-hidden mb-12">
         <div className="grid md:grid-cols-2 gap-8 p-8">
           {/* Image Section */}
-          <div className="flex items-center justify-center bg-[#f8f6f1] rounded-xl p-8">
+          <div className="flex flex-col items-center justify-center bg-[#f8f6f1] rounded-xl p-8">
             <img
-              src={book.image_url || `https://via.placeholder.com/400x600.png?text=${encodeURIComponent(book.title)}`}
+              src={
+                book.image_urls?.[0] ||
+                book.image_url ||
+                `https://via.placeholder.com/400x600.png?text=${encodeURIComponent(book.title)}`
+              }
               alt={book.title}
               className="max-h-[500px] object-contain rounded-lg shadow-lg"
             />
+            {book.image_urls?.length > 1 && (
+              <div className="flex gap-2 mt-4">
+                {book.image_urls.slice(1).map((url, idx) => (
+                  <img
+                    key={idx}
+                    src={url}
+                    alt={`${book.title} ${idx + 2}`}
+                    className="w-16 h-16 object-contain border rounded"
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Details */}
@@ -112,7 +128,11 @@ export default function BookDetails() {
               >
                 <Link to={`/books/${relatedBook.id}`}>
                   <img
-                    src={relatedBook.image_url || `https://via.placeholder.com/200x300.png?text=${encodeURIComponent(relatedBook.title)}`}
+                    src={
+                      relatedBook.image_urls?.[0] ||
+                      relatedBook.image_url ||
+                      `https://via.placeholder.com/200x300.png?text=${encodeURIComponent(relatedBook.title)}`
+                    }
                     alt={relatedBook.title}
                     className="w-full h-48 object-contain mb-4"
                   />

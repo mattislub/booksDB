@@ -11,7 +11,7 @@ router.get('/api/wishlist', async (req, res) => {
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
     const { rows } = await pool.query(
-      `SELECT w.id, w.book_id, b.title, b.author, b.price, b.image_url
+      `SELECT w.id, w.book_id, b.title, b.author, b.price, b.image_url, b.image_urls
        FROM wishlist w JOIN books b ON w.book_id = b.id
        WHERE w.user_id=$1 ORDER BY w.created_at DESC`,
       [user.id]

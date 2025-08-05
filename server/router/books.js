@@ -70,6 +70,7 @@ router.post('/api/books', async (req, res) => {
       description,
       price,
       image_url,
+      image_urls,
       availability,
       isbn,
       publisher,
@@ -95,12 +96,19 @@ router.post('/api/books', async (req, res) => {
       return isNaN(n) ? null : n;
     };
 
+    const imageUrls = Array.isArray(image_urls)
+      ? image_urls
+      : image_url
+      ? [image_url]
+      : [];
+
     const sanitized = {
       title,
       author: author || null,
       description: description || null,
       price: parseFloatOrNull(price),
-      image_url: image_url || null,
+      image_url: imageUrls[0] || null,
+      image_urls: imageUrls,
       availability: availability || 'available',
       isbn: isbn || null,
       publisher: publisher || null,
@@ -117,11 +125,11 @@ router.post('/api/books', async (req, res) => {
 
     const { rows } = await pool.query(
       `INSERT INTO books (
-        title, author, description, price, image_url, availability,
+        title, author, description, price, image_url, image_urls, availability,
         isbn, publisher, publication_year, pages, language, binding,
         dimensions, weight, stock, is_new_arrival, is_new_in_market
       ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18
       ) RETURNING *`,
       [
         sanitized.title,
@@ -129,6 +137,7 @@ router.post('/api/books', async (req, res) => {
         sanitized.description,
         sanitized.price,
         sanitized.image_url,
+        sanitized.image_urls,
         sanitized.availability,
         sanitized.isbn,
         sanitized.publisher,
@@ -185,6 +194,7 @@ router.post('/api/books/:id', async (req, res) => {
       description,
       price,
       image_url,
+      image_urls,
       availability,
       isbn,
       publisher,
@@ -210,12 +220,19 @@ router.post('/api/books/:id', async (req, res) => {
       return isNaN(n) ? null : n;
     };
 
+    const imageUrls = Array.isArray(image_urls)
+      ? image_urls
+      : image_url
+      ? [image_url]
+      : [];
+
     const sanitized = {
       title,
       author: author || null,
       description: description || null,
       price: parseFloatOrNull(price),
-      image_url: image_url || null,
+      image_url: imageUrls[0] || null,
+      image_urls: imageUrls,
       availability: availability || 'available',
       isbn: isbn || null,
       publisher: publisher || null,
@@ -237,26 +254,28 @@ router.post('/api/books/:id', async (req, res) => {
         description=$3,
         price=$4,
         image_url=$5,
-        availability=$6,
-        isbn=$7,
-        publisher=$8,
-        publication_year=$9,
-        pages=$10,
-        language=$11,
-        binding=$12,
-        dimensions=$13,
-        weight=$14,
-        stock=$15,
-        is_new_arrival=$16,
-        is_new_in_market=$17,
+        image_urls=$6,
+        availability=$7,
+        isbn=$8,
+        publisher=$9,
+        publication_year=$10,
+        pages=$11,
+        language=$12,
+        binding=$13,
+        dimensions=$14,
+        weight=$15,
+        stock=$16,
+        is_new_arrival=$17,
+        is_new_in_market=$18,
         updated_at=NOW()
-      WHERE id=$18 RETURNING *`,
+      WHERE id=$19 RETURNING *`,
       [
         sanitized.title,
         sanitized.author,
         sanitized.description,
         sanitized.price,
         sanitized.image_url,
+        sanitized.image_urls,
         sanitized.availability,
         sanitized.isbn,
         sanitized.publisher,
