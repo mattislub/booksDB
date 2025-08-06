@@ -19,7 +19,7 @@ export default function EmailPreview() {
 
   const emailHeader = `
     <div style="text-align: center; margin-bottom: 30px;">
-      <img src="https://talpiot-books.co.il/logo.png" alt="ספרי קודש תלפיות" style="max-width: 200px; margin-bottom: 15px;" />
+      <img src="https://talpiot-books.com/logo.png" alt="ספרי קודש תלפיות" style="max-width: 200px; margin-bottom: 15px;" />
       <div style="color: #666; font-size: 14px;">
         <p>טלפון: 050-418-1216</p>
         <p>רחוב הרב קוק 12, ירושלים</p>

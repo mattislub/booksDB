@@ -9,7 +9,7 @@ export function buildEmailTemplate(title, contentHtml) {
       <body style="font-family:Arial,sans-serif; background-color:#f7f7f7; padding:20px; direction:rtl; text-align:right;">
         <div style="max-width:600px; margin:0 auto; background-color:#ffffff; border-radius:8px; overflow:hidden;">
           <div style="background-color:#112a55; color:#ffffff; padding:20px; text-align:center;">
-            <img src="https://talpiot-books.co.il/logo.png" alt="תלפיות ספרי קודש" style="max-width:200px; margin-bottom:10px;" />
+            <img src="https://talpiot-books.com/logo.png" alt="תלפיות ספרי קודש" style="max-width:200px; margin-bottom:10px;" />
             <h1 style="margin:0; font-size:24px;">תלפיות ספרי קודש</h1>
           </div>
           <div style="padding:20px; color:#333333;">
