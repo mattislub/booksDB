@@ -6,13 +6,18 @@ export function buildEmailTemplate(title, contentHtml) {
         <meta charset="UTF-8" />
         <title>${title}</title>
       </head>
-      <body style="font-family:Arial,sans-serif; background-color:#f7f7f7; padding:20px;">
+      <body style="font-family:Arial,sans-serif; background-color:#f7f7f7; padding:20px; direction:rtl; text-align:right;">
         <div style="max-width:600px; margin:0 auto; background-color:#ffffff; border-radius:8px; overflow:hidden;">
-          <div style="background-color:#112a55; color:#ffffff; padding:20px;">
+          <div style="background-color:#112a55; color:#ffffff; padding:20px; text-align:center;">
+            <img src="https://talpiot-books.co.il/logo.png" alt="תלפיות ספרי קודש" style="max-width:200px; margin-bottom:10px;" />
             <h1 style="margin:0; font-size:24px;">תלפיות ספרי קודש</h1>
           </div>
           <div style="padding:20px; color:#333333;">
             ${contentHtml}
+            <div style="margin-top:20px; padding-top:10px; border-top:1px solid #e2e8f0; text-align:center; color:#666;">
+              <p style="margin:0;">בברכה,<br/>צוות ספרי קודש תלפיות</p>
+              <p style="margin:0;">טלפון: 050-418-1216</p>
+            </div>
           </div>
         </div>
       </body>
