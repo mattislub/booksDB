@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import path from 'path';
 import { logError } from './logger.js';
 import pool from './db.js';
 
@@ -13,6 +14,7 @@ import ordersRouter from './router/orders.js';
 import wishlistRouter from './router/wishlist.js';
 import contentRouter from './router/content.js';
 import setupRouter from './router/setup.js';
+import uploadRouter from './router/upload.js';
 
 dotenv.config();
 
@@ -36,6 +38,8 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 app.use(analyzeRouter);
 app.use(authRouter);
 app.use(profileRouter);
@@ -45,6 +49,7 @@ app.use(ordersRouter);
 app.use(wishlistRouter);
 app.use(contentRouter);
 app.use(setupRouter);
+app.use(uploadRouter);
 
 const PORT = process.env.PORT || 3000;
 
