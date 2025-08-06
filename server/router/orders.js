@@ -1,7 +1,7 @@
 import express from 'express';
 import pool from '../db.js';
 import { getUserFromRequest } from './auth.js';
-import { sendOrderEmail, sendOrderStatusEmail } from '../email.js';
+import { sendOrderEmail, sendOrderStatusEmail, sendAdminOrderEmail } from '../email.js';
 
 const router = express.Router();
 
@@ -29,6 +29,7 @@ router.post('/api/orders', async (req, res) => {
     }
 
     await sendOrderEmail(order, items);
+    await sendAdminOrderEmail(order, items);
 
     res.json(order);
   } catch (err) {
