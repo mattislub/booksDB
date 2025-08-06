@@ -7,13 +7,13 @@ import Catalog from '../components/Catalog';
 export default function Home() {
   return (
     <div className="space-y-12">
+      <Catalog />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <PromoBoxes />
       </div>
 
       <NewOnSite />
       <NewInMarket />
-      <Catalog />
     </div>
   );
 }

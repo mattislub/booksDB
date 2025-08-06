@@ -25,7 +25,7 @@ export default function Catalog() {
     <div className="p-4 max-w-6xl mx-auto">
       <h2 className="text-3xl font-bold mb-6 text-center text-[#112a55]">קטלוג הספרים</h2>
 
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {books.map((book) => (
           <div
             key={book.id}
@@ -35,13 +35,13 @@ export default function Catalog() {
               <img
                 src={book.image_urls?.[0] || book.image_url}
                 alt={book.title}
-                className="w-full h-[300px] object-contain bg-white rounded-t-2xl"
+                className="w-full h-[250px] object-contain bg-white rounded-t-2xl"
               />
             ) : (
               <img
                 src={`https://via.placeholder.com/300x400.png?text=${encodeURIComponent(book.title)}`}
                 alt={book.title}
-                className="w-full h-[300px] object-contain bg-white rounded-t-2xl"
+                className="w-full h-[250px] object-contain bg-white rounded-t-2xl"
               />
             )}
 
