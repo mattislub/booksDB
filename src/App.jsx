@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Header from "./components/Header";
 import Home from './pages/Home';
 import CategoriesView from "./components/CategoriesView";
@@ -20,7 +20,6 @@ import Orders from "./pages/admin/Orders";
 import Products from "./pages/admin/Products";
 import Reports from "./pages/admin/Reports";
 import AddBook from "./pages/admin/AddBook";
-import CouponPopup from "./components/CouponPopup";
 import ShoppingCart from "./components/ShoppingCart";
 import useAuthStore from "./store/authStore";
 import useCartStore from "./store/cartStore";
@@ -29,22 +28,11 @@ import { Phone, Mail, Clock } from "lucide-react";
 function App() {
   const { initialize: initAuth } = useAuthStore();
   const { initialize: initCart } = useCartStore();
-  const [showCoupon, setShowCoupon] = useState(false);
 
   useEffect(() => {
     initAuth();
     initCart();
   }, [initAuth, initCart]);
-
-  useEffect(() => {
-    const couponShown = localStorage.getItem('couponShown');
-    if (!couponShown) {
-      const timer = setTimeout(() => {
-        setShowCoupon(true);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, []);
 
   return (
     <Router>
@@ -138,7 +126,6 @@ function App() {
           </div>
         </footer>
 
-        {showCoupon && <CouponPopup onClose={() => setShowCoupon(false)} />}
         <ShoppingCart />
       </div>
     </Router>
