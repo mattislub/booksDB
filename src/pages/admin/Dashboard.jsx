@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Package, CreditCard, BarChart2, Tag, Settings, Mail, FolderTree } from 'lucide-react';
+import { Users, Package, CreditCard, BarChart2, Tag, Settings, Mail, FolderTree, Upload } from 'lucide-react';
 
 const menuItems = [
   {
@@ -26,6 +26,12 @@ const menuItems = [
     icon: FolderTree,
     link: '/admin/categories',
     description: 'ניהול קטגוריות וקטגוריות משנה'
+  },
+  {
+    title: 'העלאת תמונות',
+    icon: Upload,
+    link: '/admin/upload-images',
+    description: 'העלאת תמונות של מוצרים וספרים'
   },
   {
     title: 'מבצעים והנחות',
