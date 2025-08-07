@@ -87,6 +87,7 @@ export default function AddBook() {
             ? 'שגיאה בזיהוי הספר: לא ניתן להתחבר לשרת. אנא נסה שוב או הזן את הפרטים ידנית.'
             : `שגיאה בזיהוי הספר: ${error.message || error}. אנא נסה שוב או הזן את הפרטים ידנית.`;
         alert(message);
+        setStep(2);
       } finally {
         setLoading(false);
       }
