@@ -1,15 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, Loader } from 'lucide-react';
-import { apiPostFormData, API_URL } from '../../lib/apiClient';
+import { apiPostFormData, apiGet, API_URL } from '../../lib/apiClient';
 
 export default function UploadImages() {
   const [files, setFiles] = useState([]);
   const [uploadedUrls, setUploadedUrls] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [serverImages, setServerImages] = useState([]);
 
   const handleFilesChange = (e) => {
     setFiles(Array.from(e.target.files));
   };
+
+  const fetchImages = async () => {
+    try {
+      const res = await apiGet('/api/images');
+      const urls = res.urls.map((u) => `${API_URL}${u}`);
+      setServerImages(urls);
+    } catch (err) {
+      console.error('Error fetching images:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchImages();
+  }, []);
 
   const handleUpload = async () => {
     if (!files.length) return;
@@ -24,6 +39,7 @@ export default function UploadImages() {
         if (res.urls) urls.push(...res.urls.map(u => `${API_URL}${u}`));
       }
       setUploadedUrls(urls);
+      await fetchImages();
     } catch (err) {
       console.error('Error uploading image:', err);
       const message = err?.message || 'שגיאה בהעלאת התמונה';
@@ -57,7 +73,7 @@ export default function UploadImages() {
         <div className="mt-6">
           <h2 className="text-xl font-semibold mb-2">קישורים לתמונות:</h2>
           <ul className="list-disc pr-5 text-[#112a55] mb-4">
-            {uploadedUrls.map(url => (
+            {uploadedUrls.map((url) => (
               <li key={url}>
                 <a
                   href={url}
@@ -70,13 +86,18 @@ export default function UploadImages() {
               </li>
             ))}
           </ul>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {uploadedUrls.map(url => (
+        </div>
+      )}
+      {serverImages.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">כל התמונות בשרת:</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {serverImages.map((url) => (
               <div key={url} className="border rounded overflow-hidden">
                 <img
                   src={url}
                   alt="Uploaded"
-                  className="w-full h-40 object-cover"
+                  className="w-full h-32 object-cover"
                 />
               </div>
             ))}

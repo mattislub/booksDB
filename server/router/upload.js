@@ -23,6 +23,37 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// Helper function to recursively collect image files from a directory
+async function collectImages(dir) {
+  const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+  const files = await Promise.all(
+    entries.map(async (entry) => {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        return collectImages(fullPath);
+      }
+      const ext = path.extname(entry.name).toLowerCase();
+      if (['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext)) {
+        return `/uploads/${path
+          .relative(uploadDir, fullPath)
+          .replace(/\\/g, '/')}`;
+      }
+      return [];
+    })
+  );
+  return files.flat();
+}
+
+router.get('/api/images', async (_req, res) => {
+  try {
+    const urls = await collectImages(uploadDir);
+    res.json({ urls });
+  } catch (err) {
+    logError(err);
+    res.status(500).json({ error: 'Failed to list images' });
+  }
+});
+
 router.post('/api/upload-image', upload.single('image'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
