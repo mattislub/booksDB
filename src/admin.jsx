@@ -14,7 +14,7 @@ import UploadImages from './pages/admin/UploadImages'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/admin" element={<Dashboard />} />
