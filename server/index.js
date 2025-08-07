@@ -56,10 +56,12 @@ app.use(uploadRouter);
 const distPath = path.join(process.cwd(), 'dist');
 app.use(express.static(distPath));
 
-app.get('/admin/*', (req, res) => {
+// Serve the admin SPA for both /admin and any nested admin routes
+app.get(['/admin', '/admin/*'], (req, res) => {
   res.sendFile(path.join(distPath, 'admin.html'));
 });
 
+// Fallback to the main client for all other routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
