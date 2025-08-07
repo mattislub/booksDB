@@ -46,10 +46,12 @@ The server reads the environment variables above and listens on `PORT`.
 
 ### Image Uploads
 
-The `/api/upload-image` endpoint now enforces a 500 KB limit per image. Files
+The `/api/upload-image` endpoint now enforces a 300 KB limit per image. Files
 that exceed this size are automatically compressed on the server until they are
-below the threshold. Each upload records the original and final size in
-`server.log` for auditing.
+below the threshold. The endpoint also accepts a ZIP file of images, extracts
+them and returns URLs for each extracted image so you can choose the desired
+cover. Each upload records the original and final size in `server.log` for
+auditing.
 
 ### Initializing the Database
 
@@ -89,8 +91,9 @@ This serves the content of the `dist` directory on the port configured in `vite.
 
 ### העלאת תמונות מוצרים
 
-נקודת הקצה `/api/upload-image` בשרת בודקת אם קובץ התמונה גדול מ‑500KB.
-קבצים החורגים מהגבלה מכווצים אוטומטית עד שמתחת לסף זה. פרטי ההעלאה
+נקודת הקצה `/api/upload-image` בשרת בודקת אם קובץ התמונה גדול מ‑300KB.
+קבצים החורגים מהגבלה מכווצים אוטומטית עד שמתחת לסף זה. ניתן גם להעלות קובץ
+ZIP של תמונות, הקבצים יחולצו ויוחזרו קישורים לכל תמונה לבחירתכם. פרטי ההעלאה
 נרשמים בקובץ `server.log` לצורכי תיעוד.
 
 ## הוראות בעברית
