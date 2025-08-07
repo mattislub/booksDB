@@ -240,7 +240,15 @@ export default function AddBook() {
 
           <button
             onClick={() => setMode('ai')}
-@@ -188,195 +252,261 @@ export default function AddBook() {
+            className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow text-center"
+          >
+            <h2 className="text-xl font-bold text-[#112a55] mb-4">הוספה חכמה</h2>
+            <p className="text-gray-600">העלאת תמונה וזיהוי אוטומטי של פרטי הספר</p>
+          </button>
+        </div>
+
+        <button
+          onClick={() => window.history.back()}
           className="mt-8 text-[#112a55] hover:text-[#1a3c70] flex items-center gap-2"
         >
           <ArrowRight size={20} />
@@ -502,7 +510,40 @@ export default function AddBook() {
 
             <div>
               <label className="block text-gray-700 mb-1">הוצאה לאור</label>
-@@ -417,86 +547,96 @@ export default function AddBook() {
+              <input
+                type="text"
+                value={bookData.publisher}
+                onChange={(e) => setBookData({ ...bookData, publisher: e.target.value })}
+                className="w-full border rounded-lg p-2"
+              />
+            </div>
+
+            <div>
+              <label className="block text-gray-700 mb-1">שנת הוצאה</label>
+              <input
+                type="number"
+                value={bookData.publication_year}
+                onChange={(e) => setBookData({ ...bookData, publication_year: e.target.value })}
+                min="1800"
+                max={new Date().getFullYear()}
+                className="w-full border rounded-lg p-2"
+              />
+            </div>
+
+            <div>
+              <label className="block text-gray-700 mb-1">מספר עמודים</label>
+              <input
+                type="number"
+                value={bookData.pages}
+                onChange={(e) => setBookData({ ...bookData, pages: e.target.value })}
+                min="1"
+                className="w-full border rounded-lg p-2"
+              />
+            </div>
+
+            <div>
+              <label className="block text-gray-700 mb-1">שפה</label>
+              <select
                 value={bookData.language}
                 onChange={(e) => setBookData({ ...bookData, language: e.target.value })}
                 className="w-full border rounded-lg p-2"
