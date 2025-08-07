@@ -3,11 +3,14 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import sharp from 'sharp';
+import { exec as cpExec } from 'child_process';
+import { promisify } from 'util';
 import { logInfo, logError } from '../logger.js';
 
 const router = express.Router();
 const uploadDir = path.join(process.cwd(), 'uploads');
 fs.mkdirSync(uploadDir, { recursive: true });
+const exec = promisify(cpExec);
 
 const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, uploadDir),
@@ -26,15 +29,54 @@ router.post('/api/upload-image', upload.single('image'), async (req, res) => {
   }
 
   const filePath = req.file.path;
+  const isZip = req.file.mimetype === 'application/zip';
+
+  // Handle ZIP files: extract images and return list of URLs
+  if (isZip) {
+    const baseName = path.parse(req.file.filename).name;
+    const extractDir = path.join(uploadDir, baseName);
+    fs.mkdirSync(extractDir, { recursive: true });
+    try {
+      await exec(`unzip -j ${filePath} -d ${extractDir}`);
+      await fs.promises.unlink(filePath);
+      const files = await fs.promises.readdir(extractDir);
+      const urls = [];
+      for (const file of files) {
+        const ext = path.extname(file).toLowerCase();
+        if (!['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext)) continue;
+        const fullPath = path.join(extractDir, file);
+        let quality = 80;
+        let buffer = await sharp(fullPath).jpeg({ quality }).toBuffer();
+        while (buffer.length > 300 * 1024 && quality > 30) {
+          quality -= 10;
+          buffer = await sharp(fullPath).jpeg({ quality }).toBuffer();
+        }
+        const newName = `${path.parse(file).name}.jpg`;
+        const newPath = path.join(extractDir, newName);
+        await fs.promises.writeFile(newPath, buffer);
+        if (newPath !== fullPath) await fs.promises.unlink(fullPath);
+        urls.push(`/uploads/${baseName}/${newName}`);
+        logInfo(
+          `Uploaded image ${newName}: ${Math.round(buffer.length / 1024)}kb`
+        );
+      }
+      return res.json({ urls });
+    } catch (err) {
+      logError(err);
+      return res.status(500).json({ error: 'Failed to extract ZIP' });
+    }
+  }
+
+  // Handle single image files
   const originalSize = fs.statSync(filePath).size;
   let finalPath = filePath;
   let finalSize = originalSize;
 
   try {
-    if (originalSize > 500 * 1024) {
+    if (originalSize > 300 * 1024) {
       let quality = 80;
       let buffer = await sharp(filePath).jpeg({ quality }).toBuffer();
-      while (buffer.length > 500 * 1024 && quality > 30) {
+      while (buffer.length > 300 * 1024 && quality > 30) {
         quality -= 10;
         buffer = await sharp(filePath).jpeg({ quality }).toBuffer();
       }

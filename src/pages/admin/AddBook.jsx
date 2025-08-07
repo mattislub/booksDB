@@ -16,6 +16,16 @@ export default function AddBook() {
   const [aiData, setAiData] = useState(null);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [newCategory, setNewCategory] = useState('');
+  const [zipUrls, setZipUrls] = useState([]);
+  const [fieldConfirmed, setFieldConfirmed] = useState({
+    title: false,
+    author: false,
+    description: false,
+    price: false,
+    stock: false,
+    categories: false
+  });
+  const allConfirmed = Object.values(fieldConfirmed).every(Boolean);
 
   useEffect(() => {
     console.log('Initializing categories');
@@ -23,7 +33,7 @@ export default function AddBook() {
   }, [initCategories]);
 
   useEffect(() => {
-    if (mode === 'ai' && step === 2 && categories.length === 0) {
+    if (mode === 'ai' && step === 3 && categories.length === 0) {
       initCategories();
     }
   }, [mode, step, categories.length, initCategories]);
@@ -50,15 +60,40 @@ export default function AddBook() {
     const file = e.target.files[0];
     if (!file) return;
 
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const uploadRes = await apiPostFormData('/api/upload-image', formData);
+
+      if (uploadRes.urls) {
+        setZipUrls(uploadRes.urls);
+        setStep(2);
+      } else if (uploadRes.url) {
+        const resp = await fetch(uploadRes.url);
+        const blob = await resp.blob();
+        const selectedFile = new File([blob], 'image.jpg', { type: blob.type });
+        await processSelectedFile(selectedFile, uploadRes.url);
+      }
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      alert('שגיאה בהעלאת התמונה');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const processSelectedFile = async (file, url) => {
     let processedFile = file;
     try {
-      processedFile = await compressImage(file);
+      processedFile = await compressImage(file, 0.3);
     } catch (err) {
       console.error('Error compressing image:', err);
     }
 
     setImageFile(processedFile);
     setImagePreview(URL.createObjectURL(processedFile));
+    setBookData(prev => ({ ...prev, image_url: url || prev.image_url }));
     console.log('Selected image for upload', processedFile);
 
     if (mode === 'ai') {
@@ -79,7 +114,7 @@ export default function AddBook() {
           isbn: aiResponse.isbn || ''
         }));
 
-        setStep(2);
+        setStep(3);
       } catch (error) {
         console.error('Error analyzing image:', error);
         const message =
@@ -90,18 +125,33 @@ export default function AddBook() {
       } finally {
         setLoading(false);
       }
+    } else {
+      setStep(3);
+    }
+  };
+
+  const handleZipSelection = async (url) => {
+    try {
+      const resp = await fetch(url);
+      const blob = await resp.blob();
+      const file = new File([blob], 'image.jpg', { type: blob.type });
+      await processSelectedFile(file, url);
+      setZipUrls([]);
+    } catch (err) {
+      console.error('Error handling zip selection', err);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!window.confirm('לאשר את נתוני הספר ולרשום אותו באתר?')) return;
     setLoading(true);
 
     try {
       let imageUrl = bookData.image_url;
 
-      if (imageFile) {
-        const finalFile = await compressImage(imageFile);
+      if (imageFile && !imageUrl) {
+        const finalFile = await compressImage(imageFile, 0.3);
         const formData = new FormData();
         formData.append('image', finalFile);
         const uploadRes = await apiPostFormData('/api/upload-image', formData);
@@ -151,6 +201,15 @@ export default function AddBook() {
       setSelectedCategories([]);
       setImageFile(null);
       setImagePreview('');
+      setZipUrls([]);
+      setFieldConfirmed({
+        title: false,
+        author: false,
+        description: false,
+        price: false,
+        stock: false,
+        categories: false
+      });
       setStep(1);
     } catch (error) {
       console.error('Error adding book:', error);
@@ -210,7 +269,7 @@ export default function AddBook() {
           <label className="block w-full max-w-md mx-auto">
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,.zip"
               onChange={handleImageChange}
               className="hidden"
             />
@@ -229,7 +288,24 @@ export default function AddBook() {
         </div>
       )}
 
-      {(mode === 'simple' || step === 2) && (
+      {mode === 'ai' && step === 2 && zipUrls.length > 0 && (
+        <div className="bg-white rounded-xl shadow-lg p-8">
+          <h2 className="text-xl font-bold text-center mb-4 text-[#112a55]">בחר תמונה</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {zipUrls.map((url, idx) => (
+              <img
+                key={idx}
+                src={url}
+                alt={`option-${idx}`}
+                className="cursor-pointer border rounded"
+                onClick={() => handleZipSelection(url)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {(mode === 'simple' || step === 3) && (
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {imagePreview && (
@@ -265,42 +341,82 @@ export default function AddBook() {
             </div>
 
             <div>
-              <label className="block text-gray-700 mb-1">שם הספר *</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-gray-700">שם הספר *</label>
+                <input
+                  type="checkbox"
+                  checked={fieldConfirmed.title}
+                  onChange={(e) => setFieldConfirmed({ ...fieldConfirmed, title: e.target.checked })}
+                />
+              </div>
               <input
                 type="text"
                 value={bookData.title}
-                onChange={(e) => setBookData({ ...bookData, title: e.target.value })}
+                onChange={(e) => {
+                  setBookData({ ...bookData, title: e.target.value });
+                  setFieldConfirmed({ ...fieldConfirmed, title: false });
+                }}
                 required
                 className="w-full border rounded-lg p-2"
               />
             </div>
 
             <div>
-              <label className="block text-gray-700 mb-1">מחבר</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-gray-700">מחבר</label>
+                <input
+                  type="checkbox"
+                  checked={fieldConfirmed.author}
+                  onChange={(e) => setFieldConfirmed({ ...fieldConfirmed, author: e.target.checked })}
+                />
+              </div>
               <input
                 type="text"
                 value={bookData.author}
-                onChange={(e) => setBookData({ ...bookData, author: e.target.value })}
+                onChange={(e) => {
+                  setBookData({ ...bookData, author: e.target.value });
+                  setFieldConfirmed({ ...fieldConfirmed, author: false });
+                }}
                 className="w-full border rounded-lg p-2"
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-gray-700 mb-1">תיאור</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-gray-700">תיאור</label>
+                <input
+                  type="checkbox"
+                  checked={fieldConfirmed.description}
+                  onChange={(e) => setFieldConfirmed({ ...fieldConfirmed, description: e.target.checked })}
+                />
+              </div>
               <textarea
                 value={bookData.description}
-                onChange={(e) => setBookData({ ...bookData, description: e.target.value })}
+                onChange={(e) => {
+                  setBookData({ ...bookData, description: e.target.value });
+                  setFieldConfirmed({ ...fieldConfirmed, description: false });
+                }}
                 rows="3"
                 className="w-full border rounded-lg p-2"
               />
             </div>
 
             <div>
-              <label className="block text-gray-700 mb-1">מחיר *</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-gray-700">מחיר *</label>
+                <input
+                  type="checkbox"
+                  checked={fieldConfirmed.price}
+                  onChange={(e) => setFieldConfirmed({ ...fieldConfirmed, price: e.target.checked })}
+                />
+              </div>
               <input
                 type="number"
                 value={bookData.price}
-                onChange={(e) => setBookData({ ...bookData, price: e.target.value })}
+                onChange={(e) => {
+                  setBookData({ ...bookData, price: e.target.value });
+                  setFieldConfirmed({ ...fieldConfirmed, price: false });
+                }}
                 required
                 min="0"
                 step="0.01"
@@ -309,7 +425,14 @@ export default function AddBook() {
             </div>
 
             <div>
-              <label className="block text-gray-700 mb-1">קטגוריות *</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-gray-700">קטגוריות *</label>
+                <input
+                  type="checkbox"
+                  checked={fieldConfirmed.categories}
+                  onChange={(e) => setFieldConfirmed({ ...fieldConfirmed, categories: e.target.checked })}
+                />
+              </div>
               <div className="flex items-center gap-2 mb-3">
                 <input
                   type="text"
@@ -327,6 +450,7 @@ export default function AddBook() {
                       if (result.success) {
                         setNewCategory('');
                         setSelectedCategories((prev) => [...prev, result.data.id]);
+                        setFieldConfirmed({ ...fieldConfirmed, categories: false });
                       } else {
                         throw result.error;
                       }
@@ -355,6 +479,7 @@ export default function AddBook() {
                           updated = selectedCategories.filter(id => id !== category.id);
                         }
                         setSelectedCategories(updated);
+                        setFieldConfirmed({ ...fieldConfirmed, categories: false });
                         console.log('Selected categories', updated);
                       }}
                       className="form-checkbox h-5 w-5 text-[#112a55]"
@@ -439,11 +564,21 @@ export default function AddBook() {
             </div>
 
             <div>
-              <label className="block text-gray-700 mb-1">כמות במלאי *</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-gray-700">כמות במלאי *</label>
+                <input
+                  type="checkbox"
+                  checked={fieldConfirmed.stock}
+                  onChange={(e) => setFieldConfirmed({ ...fieldConfirmed, stock: e.target.checked })}
+                />
+              </div>
               <input
                 type="number"
                 value={bookData.stock}
-                onChange={(e) => setBookData({ ...bookData, stock: e.target.value })}
+                onChange={(e) => {
+                  setBookData({ ...bookData, stock: e.target.value });
+                  setFieldConfirmed({ ...fieldConfirmed, stock: false });
+                }}
                 required
                 min="0"
                 className="w-full border rounded-lg p-2"
@@ -477,7 +612,7 @@ export default function AddBook() {
             <button
               type="button"
               onClick={() => {
-                if (mode === 'ai' && step === 2) {
+                if (mode === 'ai' && step === 3) {
                   setStep(1);
                 } else {
                   setMode('select');
@@ -489,7 +624,7 @@ export default function AddBook() {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !allConfirmed}
               className="px-6 py-2 bg-[#112a55] text-white rounded-lg hover:bg-[#1a3c70] disabled:bg-gray-400"
             >
               {loading ? 'שומר...' : 'שמור ספר'}
