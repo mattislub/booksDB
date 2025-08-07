@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, ArrowRight, Loader, Plus } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { apiPostFormData } from '../../lib/apiClient';
+import { apiPostFormData, API_URL } from '../../lib/apiClient';
 import { compressImage } from '../../lib/imageUtils';
 import useCategoriesStore from '../../store/categoriesStore';
 import useBooksStore from '../../store/booksStore';
@@ -72,13 +72,14 @@ export default function AddBook() {
       const uploadRes = await apiPostFormData('/api/upload-image', formData);
 
       if (uploadRes.urls) {
-        setZipUrls(uploadRes.urls);
+        setZipUrls(uploadRes.urls.map(u => `${API_URL}${u}`));
         setStep(2);
       } else if (uploadRes.url) {
-        const resp = await fetch(uploadRes.url);
+        const fullUrl = `${API_URL}${uploadRes.url}`;
+        const resp = await fetch(fullUrl);
         const blob = await resp.blob();
         const selectedFile = new File([blob], 'image.jpg', { type: blob.type });
-        await processSelectedFile(selectedFile, uploadRes.url);
+        await processSelectedFile(selectedFile, fullUrl);
       }
     } catch (err) {
       console.error('Error uploading image:', err);
@@ -160,7 +161,7 @@ export default function AddBook() {
         const formData = new FormData();
         formData.append('image', finalFile);
         const uploadRes = await apiPostFormData('/api/upload-image', formData);
-        imageUrl = uploadRes.url;
+        imageUrl = `${API_URL}${uploadRes.url}`;
       }
 
       const imageUrls = [

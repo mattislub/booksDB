@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, Loader } from 'lucide-react';
-import { apiPostFormData } from '../../lib/apiClient';
+import { apiPostFormData, API_URL } from '../../lib/apiClient';
 
 export default function UploadImages() {
   const [files, setFiles] = useState([]);
@@ -20,8 +20,8 @@ export default function UploadImages() {
         const formData = new FormData();
         formData.append('image', file);
         const res = await apiPostFormData('/api/upload-image', formData);
-        if (res.url) urls.push(res.url);
-        if (res.urls) urls.push(...res.urls);
+        if (res.url) urls.push(`${API_URL}${res.url}`);
+        if (res.urls) urls.push(...res.urls.map(u => `${API_URL}${u}`));
       }
       setUploadedUrls(urls);
     } catch (err) {
