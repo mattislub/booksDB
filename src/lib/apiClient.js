@@ -8,7 +8,8 @@ async function handleResponse(res) {
     message = data.error || JSON.stringify(data);
   } catch (_) {
     try {
-      message = await res.text();
+      const text = await res.text();
+      if (text) message = text;
     } catch (e) {
       // ignore
     }
