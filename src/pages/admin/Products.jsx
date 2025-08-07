@@ -192,13 +192,24 @@ export default function Products() {
               className="pr-10 pl-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#a48327] focus:border-transparent outline-none"
             />
           </div>
-          
-          <Link
-            to="/admin/add-book"
+
+          <button
+            onClick={() => {
+              setSelectedBook(null);
+              resetForm();
+              setIsModalOpen(true);
+            }}
             className="flex items-center gap-2 bg-[#a48327] text-white px-4 py-2 rounded-lg hover:bg-[#8b6f1f] transition-colors"
           >
             <Plus size={20} />
-            הוסף מוצר
+            הוספה ידנית
+          </button>
+
+          <Link
+            to="/admin/add-book?mode=ai"
+            className="flex items-center gap-2 bg-[#112a55] text-white px-4 py-2 rounded-lg hover:bg-[#1a3c70] transition-colors"
+          >
+            הוספה חכמה
           </Link>
         </div>
       </div>
