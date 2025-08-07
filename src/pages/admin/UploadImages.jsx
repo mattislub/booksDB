@@ -26,7 +26,8 @@ export default function UploadImages() {
       setUploadedUrls(urls);
     } catch (err) {
       console.error('Error uploading image:', err);
-      alert('שגיאה בהעלאת התמונה');
+      const message = err?.message || 'שגיאה בהעלאת התמונה';
+      alert(message);
     } finally {
       setLoading(false);
     }

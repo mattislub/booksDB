@@ -35,7 +35,7 @@ function App() {
   }, [initAuth, initCart]);
 
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div dir="rtl" className="font-serif bg-[#f8f6f1] min-h-screen">
         <Header />
         <main className="max-w-7xl mx-auto px-4 py-8">
