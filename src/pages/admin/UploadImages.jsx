@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, Loader } from 'lucide-react';
-import { apiPostFormData, apiGet, API_URL } from '../../lib/apiClient';
+import { apiPostFormData, apiGet, apiPost, API_URL } from '../../lib/apiClient';
 
 export default function UploadImages() {
   const [files, setFiles] = useState([]);
   const [uploadedUrls, setUploadedUrls] = useState([]);
   const [loading, setLoading] = useState(false);
   const [serverImages, setServerImages] = useState([]);
+  const [selected, setSelected] = useState([]);
 
   const handleFilesChange = (e) => {
     setFiles(Array.from(e.target.files));
@@ -15,8 +16,12 @@ export default function UploadImages() {
   const fetchImages = async () => {
     try {
       const res = await apiGet('/api/images');
-      const urls = res.urls.map((u) => `${API_URL}${u}`);
-      setServerImages(urls);
+      const images = res.images.map((img) => ({
+        url: `${API_URL}${img.url}`,
+        path: img.url,
+        size: img.size
+      }));
+      setServerImages(images);
     } catch (err) {
       console.error('Error fetching images:', err);
     }
@@ -46,6 +51,24 @@ export default function UploadImages() {
       alert(message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleSelect = (path) => {
+    setSelected((prev) =>
+      prev.includes(path) ? prev.filter((p) => p !== path) : [...prev, path]
+    );
+  };
+
+  const handleCompressSelected = async () => {
+    if (selected.length === 0) return;
+    try {
+      await apiPost('/api/images/compress', { urls: selected });
+      await fetchImages();
+      setSelected([]);
+    } catch (err) {
+      console.error('Error compressing images:', err);
+      alert(err?.message || 'שגיאה בהקטנת התמונות');
     }
   };
 
@@ -91,14 +114,30 @@ export default function UploadImages() {
       {serverImages.length > 0 && (
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-4">כל התמונות בשרת:</h2>
+          <button
+            onClick={handleCompressSelected}
+            disabled={selected.length === 0}
+            className="mb-4 bg-[#a48327] text-white px-4 py-2 rounded-md hover:bg-[#916f22] disabled:opacity-50"
+          >
+            הקטן תמונות נבחרות
+          </button>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {serverImages.map((url) => (
-              <div key={url} className="border rounded overflow-hidden">
+            {serverImages.map((img) => (
+              <div key={img.path} className="border rounded overflow-hidden relative">
+                <input
+                  type="checkbox"
+                  className="absolute top-2 left-2"
+                  checked={selected.includes(img.path)}
+                  onChange={() => toggleSelect(img.path)}
+                />
                 <img
-                  src={url}
+                  src={img.url}
                   alt="Uploaded"
                   className="w-full h-32 object-cover"
                 />
+                <div className="p-1 text-xs text-center">
+                  {(img.size / 1024).toFixed(1)} KB
+                </div>
               </div>
             ))}
           </div>

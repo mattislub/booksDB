@@ -34,9 +34,11 @@ async function collectImages(dir) {
       }
       const ext = path.extname(entry.name).toLowerCase();
       if (['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext)) {
-        return `/uploads/${path
-          .relative(uploadDir, fullPath)
-          .replace(/\\/g, '/')}`;
+        const stat = await fs.promises.stat(fullPath);
+        return {
+          url: `/uploads/${path.relative(uploadDir, fullPath).replace(/\\/g, '/')}`,
+          size: stat.size
+        };
       }
       return [];
     })
@@ -46,12 +48,48 @@ async function collectImages(dir) {
 
 router.get('/api/images', async (_req, res) => {
   try {
-    const urls = await collectImages(uploadDir);
-    res.json({ urls });
+    const images = await collectImages(uploadDir);
+    res.json({ images });
   } catch (err) {
     logError(err);
     res.status(500).json({ error: 'Failed to list images' });
   }
+});
+
+router.post('/api/images/compress', async (req, res) => {
+  const { urls } = req.body || {};
+  if (!Array.isArray(urls) || urls.length === 0) {
+    return res.status(400).json({ error: 'No urls provided' });
+  }
+
+  const results = [];
+  for (const url of urls) {
+    const relative = url.replace(/^\/uploads\//, '');
+    const filePath = path.join(uploadDir, relative);
+    try {
+      const originalSize = (await fs.promises.stat(filePath)).size;
+      let finalSize = originalSize;
+      if (originalSize > 300 * 1024) {
+        let quality = 80;
+        let buffer = await sharp(filePath).jpeg({ quality }).toBuffer();
+        while (buffer.length > 300 * 1024 && quality > 30) {
+          quality -= 10;
+          buffer = await sharp(filePath).jpeg({ quality }).toBuffer();
+        }
+        await fs.promises.writeFile(filePath, buffer);
+        finalSize = buffer.length;
+      }
+      results.push({ url, before: originalSize, after: finalSize });
+      logInfo(
+        `Compressed image ${url}: ${Math.round(originalSize / 1024)}kb -> ${Math.round(finalSize / 1024)}kb`
+      );
+    } catch (err) {
+      logError(err);
+      results.push({ url, error: 'Failed to process' });
+    }
+  }
+
+  res.json({ results });
 });
 
 router.post('/api/upload-image', upload.single('image'), async (req, res) => {
