@@ -53,6 +53,17 @@ app.use(settingsRouter);
 app.use(setupRouter);
 app.use(uploadRouter);
 
+const distPath = path.join(process.cwd(), 'dist');
+app.use(express.static(distPath));
+
+app.get('/admin/*', (req, res) => {
+  res.sendFile(path.join(distPath, 'admin.html'));
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'));
+});
+
 const PORT = process.env.PORT || 3000;
 
 async function ensureImageUrlsColumn() {
