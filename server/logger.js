@@ -10,3 +10,11 @@ export function logError(err) {
   });
   console.error(err);
 }
+
+export function logInfo(message) {
+  const entry = `[${new Date().toISOString()}] ${message}\n`;
+  fs.appendFile(logFile, entry, (e) => {
+    if (e) console.error('Failed to write log:', e);
+  });
+  console.log(message);
+}

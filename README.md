@@ -44,6 +44,13 @@ npm run server
 
 The server reads the environment variables above and listens on `PORT`.
 
+### Image Uploads
+
+The `/api/upload-image` endpoint now enforces a 500 KB limit per image. Files
+that exceed this size are automatically compressed on the server until they are
+below the threshold. Each upload records the original and final size in
+`server.log` for auditing.
+
 ### Initializing the Database
 
 To create the tables required by the API (books, categories and other admin features) run:
@@ -79,6 +86,12 @@ npm run preview
 ```
 
 This serves the content of the `dist` directory on the port configured in `vite.config.js` (defaults to `3000`).
+
+### העלאת תמונות מוצרים
+
+נקודת הקצה `/api/upload-image` בשרת בודקת אם קובץ התמונה גדול מ‑500KB.
+קבצים החורגים מהגבלה מכווצים אוטומטית עד שמתחת לסף זה. פרטי ההעלאה
+נרשמים בקובץ `server.log` לצורכי תיעוד.
 
 ## הוראות בעברית
 
