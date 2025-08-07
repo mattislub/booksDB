@@ -98,11 +98,7 @@ export default function BookDetails() {
             </button>
 
             {/* Benefits */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t">
-              <div className="text-center">
-                <Package className="mx-auto text-[#112a55] mb-2" size={24} />
-                <span className="text-sm">משלוח חינם</span>
-              </div>
+            <div className="grid grid-cols-2 gap-4 pt-6 border-t">
               <div className="text-center">
                 <Clock className="mx-auto text-[#112a55] mb-2" size={24} />
                 <span className="text-sm">משלוח מהיר</span>
