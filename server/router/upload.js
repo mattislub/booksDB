@@ -116,12 +116,7 @@ router.post('/api/upload-image', upload.single('image'), async (req, res) => {
         const ext = path.extname(file).toLowerCase();
         if (!['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext)) continue;
         const fullPath = path.join(extractDir, file);
-        let quality = 80;
-        let buffer = await sharp(fullPath).jpeg({ quality }).toBuffer();
-        while (buffer.length > 300 * 1024 && quality > 30) {
-          quality -= 10;
-          buffer = await sharp(fullPath).jpeg({ quality }).toBuffer();
-        }
+        const buffer = await sharp(fullPath).jpeg({ quality: 80 }).toBuffer();
         const newName = `${path.parse(file).name}.jpg`;
         const newPath = path.join(extractDir, newName);
         await fs.promises.writeFile(newPath, buffer);
@@ -140,27 +135,19 @@ router.post('/api/upload-image', upload.single('image'), async (req, res) => {
 
   // Handle single image files
   const originalSize = fs.statSync(filePath).size;
-  let finalPath = filePath;
   let finalSize = originalSize;
 
   try {
-    if (originalSize > 300 * 1024) {
-      let quality = 80;
-      let buffer = await sharp(filePath).jpeg({ quality }).toBuffer();
-      while (buffer.length > 300 * 1024 && quality > 30) {
-        quality -= 10;
-        buffer = await sharp(filePath).jpeg({ quality }).toBuffer();
-      }
-      finalSize = buffer.length;
+    const buffer = await sharp(filePath).jpeg({ quality: 80 }).toBuffer();
+    finalSize = buffer.length;
 
-      const newFilename = `${path.parse(req.file.filename).name}.jpg`;
-      finalPath = path.join(uploadDir, newFilename);
-      await fs.promises.writeFile(finalPath, buffer);
-      if (finalPath !== filePath) {
-        await fs.promises.unlink(filePath);
-      }
-      req.file.filename = newFilename;
+    const newFilename = `${path.parse(req.file.filename).name}.jpg`;
+    const finalPath = path.join(uploadDir, newFilename);
+    await fs.promises.writeFile(finalPath, buffer);
+    if (finalPath !== filePath) {
+      await fs.promises.unlink(filePath);
     }
+    req.file.filename = newFilename;
   } catch (err) {
     logError(err);
     return res.status(500).json({ error: 'Image processing failed' });
