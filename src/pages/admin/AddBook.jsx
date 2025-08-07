@@ -82,7 +82,11 @@ export default function AddBook() {
         setStep(2);
       } catch (error) {
         console.error('Error analyzing image:', error);
-        alert(`שגיאה בזיהוי הספר: ${error.message || error}. אנא נסה שוב או הזן את הפרטים ידנית.`);
+        const message =
+          error?.message === 'Failed to fetch'
+            ? 'שגיאה בזיהוי הספר: לא ניתן להתחבר לשרת. אנא נסה שוב או הזן את הפרטים ידנית.'
+            : `שגיאה בזיהוי הספר: ${error.message || error}. אנא נסה שוב או הזן את הפרטים ידנית.`;
+        alert(message);
       } finally {
         setLoading(false);
       }
