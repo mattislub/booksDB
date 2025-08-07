@@ -39,7 +39,7 @@ export default function Header() {
           <Link to="/contact" className="hover:text-[#a48327] transition">יצירת קשר</Link>
         </nav>
         <div className="flex items-center gap-4">
-          <span className="text-xs">הנחת מזומן 10%</span>
+          <span className="text-xs">מחירים משתלמים</span>
         </div>
       </div>
 
