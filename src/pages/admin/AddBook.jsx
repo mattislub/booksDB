@@ -98,12 +98,10 @@ export default function AddBook() {
 
       if (imageFile) {
         const finalFile = await compressImage(imageFile);
-        const reader = new FileReader();
-        imageUrl = await new Promise((resolve, reject) => {
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(finalFile);
-        });
+        const formData = new FormData();
+        formData.append('image', finalFile);
+        const uploadRes = await apiPostFormData('/api/upload-image', formData);
+        imageUrl = uploadRes.url;
       }
 
       const imageUrls = [
