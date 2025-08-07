@@ -29,7 +29,12 @@ router.post('/api/upload-image', upload.single('image'), async (req, res) => {
   }
 
   const filePath = req.file.path;
-  const isZip = req.file.mimetype === 'application/zip';
+  // Some browsers report ZIP uploads with different MIME types
+  const zipMimeTypes = [
+    'application/zip',
+    'application/x-zip-compressed'
+  ];
+  const isZip = zipMimeTypes.includes(req.file.mimetype);
 
   // Handle ZIP files: extract images and return list of URLs
   if (isZip) {
