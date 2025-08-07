@@ -56,15 +56,31 @@ export default function UploadImages() {
       {uploadedUrls.length > 0 && (
         <div className="mt-6">
           <h2 className="text-xl font-semibold mb-2">קישורים לתמונות:</h2>
-          <ul className="list-disc pr-5 text-[#112a55]">
+          <ul className="list-disc pr-5 text-[#112a55] mb-4">
             {uploadedUrls.map(url => (
               <li key={url}>
-                <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline break-all"
+                >
                   {url}
                 </a>
               </li>
             ))}
           </ul>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {uploadedUrls.map(url => (
+              <div key={url} className="border rounded overflow-hidden">
+                <img
+                  src={url}
+                  alt="Uploaded"
+                  className="w-full h-40 object-cover"
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
