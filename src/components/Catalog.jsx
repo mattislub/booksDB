@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ShoppingCart, Plus, Eye } from "lucide-react";
+import { ShoppingCart, Plus, Eye, Filter } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import useBooksStore from '../store/booksStore';
 import useCartStore from '../store/cartStore';
@@ -50,47 +50,55 @@ export default function Catalog() {
     <div className="p-4 max-w-6xl mx-auto">
       <h2 className="text-3xl font-bold mb-6 text-center text-[#112a55]">קטלוג הספרים</h2>
 
-      <div className="mb-6 bg-white p-4 rounded-lg shadow">
-        <h3 className="font-semibold mb-2">סינון מתקדם</h3>
-        <div className="flex flex-col gap-4 md:flex-row md:items-end">
-          <div className="flex-1">
-            <span className="font-medium mb-1 block">קטגוריות</span>
+      <div className="mb-6 bg-white p-6 rounded-xl shadow-lg">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-[#112a55]">
+          <Filter size={20} /> סינון מתקדם
+        </h3>
+        <div className="grid gap-4 md:grid-cols-4 md:items-end">
+          <div className="md:col-span-2">
+            <span className="font-medium mb-2 block">קטגוריות</span>
             <div className="flex flex-wrap gap-2">
               {categories.map(cat => (
-                <label key={cat.id} className="flex items-center gap-1">
+                <label
+                  key={cat.id}
+                  className={`flex items-center gap-2 px-3 py-1 rounded-full border cursor-pointer transition-colors duration-200 ${selectedCategories.includes(cat.id) ? 'bg-[#7c1c2c] text-white border-[#7c1c2c]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                >
                   <input
                     type="checkbox"
                     value={cat.id}
                     checked={selectedCategories.includes(cat.id)}
                     onChange={() => toggleCategory(cat.id)}
+                    className="accent-[#7c1c2c]"
                   />
-                  <span>{cat.name}</span>
+                  <span className="text-sm">{cat.name}</span>
                 </label>
               ))}
             </div>
           </div>
-          <div className="flex items-end gap-2">
-            <div>
+          <div className="flex gap-2 md:col-span-1">
+            <div className="flex-1">
               <label className="block text-sm mb-1">מחיר מינימלי</label>
               <input
                 type="number"
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
-                className="border rounded p-1 w-24"
+                className="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#7c1c2c]"
               />
             </div>
-            <div>
+            <div className="flex-1">
               <label className="block text-sm mb-1">מחיר מקסימלי</label>
               <input
                 type="number"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
-                className="border rounded p-1 w-24"
+                className="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#7c1c2c]"
               />
             </div>
+          </div>
+          <div className="md:col-span-1 flex md:justify-end">
             <button
               onClick={applyFilters}
-              className="bg-[#7c1c2c] text-white px-4 py-2 rounded"
+              className="w-full bg-[#7c1c2c] text-white px-6 py-2 rounded-lg hover:bg-[#66121f] transition-colors"
             >
               סנן
             </button>
