@@ -1,4 +1,10 @@
-export const API_URL = import.meta.env.VITE_API_URL || '';
+const origin =
+  typeof window !== 'undefined' ? window.location.origin : '';
+const DEFAULT_API_URL = origin.startsWith('http')
+  ? origin
+  : 'http://localhost:3000';
+
+export const API_URL = import.meta.env.VITE_API_URL || DEFAULT_API_URL;
 
 async function handleResponse(res) {
   if (res.ok) return res.json();
