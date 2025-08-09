@@ -87,7 +87,7 @@ router.post(
       ];
 
       const chat = await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages,
         temperature: 0,
         response_format: { type: 'json_object' },
