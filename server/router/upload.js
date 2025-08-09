@@ -21,7 +21,10 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: { fileSize: 20 * 1024 * 1024 }
+});
 
 // Helper function to recursively collect image files from a directory
 async function collectImages(dir) {
@@ -92,7 +95,17 @@ router.post('/api/images/compress', async (req, res) => {
   res.json({ results });
 });
 
-router.post('/api/upload-image', upload.single('image'), async (req, res) => {
+const singleUpload = upload.single('image');
+
+router.post('/api/upload-image', (req, res, next) => {
+  singleUpload(req, res, (err) => {
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'File too large' });
+    }
+    if (err) return res.status(500).json({ error: 'Upload failed' });
+    next();
+  });
+}, async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
