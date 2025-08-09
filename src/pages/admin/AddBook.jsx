@@ -19,15 +19,6 @@ export default function AddBook() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [newCategory, setNewCategory] = useState('');
   const [zipUrls, setZipUrls] = useState([]);
-  const [fieldConfirmed, setFieldConfirmed] = useState({
-    title: false,
-    author: false,
-    description: false,
-    price: false,
-    stock: false,
-    categories: false
-  });
-  const allConfirmed = Object.values(fieldConfirmed).every(Boolean);
 
   const buildCategoryTree = (cats) => {
     const map = {};
@@ -67,7 +58,6 @@ export default function AddBook() {
               updated = selectedCategories.filter(id => id !== category.id);
             }
             setSelectedCategories(updated);
-            setFieldConfirmed({ ...fieldConfirmed, categories: false });
             console.log('Selected categories', updated);
           }}
           className="form-checkbox h-5 w-5 text-[#112a55]"
@@ -107,7 +97,6 @@ export default function AddBook() {
         .map(cat => cat.id);
       if (matched.length > 0) {
         setSelectedCategories(matched);
-        setFieldConfirmed(prev => ({ ...prev, categories: false }));
       }
     }
   }, [aiData, categories]);
@@ -307,14 +296,6 @@ export default function AddBook() {
       setImageFile(null);
       setImagePreview('');
       setZipUrls([]);
-      setFieldConfirmed({
-        title: false,
-        author: false,
-        description: false,
-        price: false,
-        stock: false,
-        categories: false
-      });
       setStep(1);
     } catch (error) {
       console.error('Error adding book:', error);
@@ -446,20 +427,12 @@ export default function AddBook() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-gray-700">שם הספר *</label>
-                <input
-                  type="checkbox"
-                  checked={fieldConfirmed.title}
-                  onChange={(e) => setFieldConfirmed({ ...fieldConfirmed, title: e.target.checked })}
-                />
-              </div>
+              <label className="block text-gray-700 mb-1">שם הספר *</label>
               <input
                 type="text"
                 value={bookData.title}
                 onChange={(e) => {
                   setBookData({ ...bookData, title: e.target.value });
-                  setFieldConfirmed({ ...fieldConfirmed, title: false });
                 }}
                 required
                 className="w-full border rounded-lg p-2"
@@ -467,39 +440,23 @@ export default function AddBook() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-gray-700">מחבר</label>
-                <input
-                  type="checkbox"
-                  checked={fieldConfirmed.author}
-                  onChange={(e) => setFieldConfirmed({ ...fieldConfirmed, author: e.target.checked })}
-                />
-              </div>
+              <label className="block text-gray-700 mb-1">מחבר</label>
               <input
                 type="text"
                 value={bookData.author}
                 onChange={(e) => {
                   setBookData({ ...bookData, author: e.target.value });
-                  setFieldConfirmed({ ...fieldConfirmed, author: false });
                 }}
                 className="w-full border rounded-lg p-2"
               />
             </div>
 
             <div className="md:col-span-2">
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-gray-700">תיאור</label>
-                <input
-                  type="checkbox"
-                  checked={fieldConfirmed.description}
-                  onChange={(e) => setFieldConfirmed({ ...fieldConfirmed, description: e.target.checked })}
-                />
-              </div>
+              <label className="block text-gray-700 mb-1">תיאור</label>
               <textarea
                 value={bookData.description}
                 onChange={(e) => {
                   setBookData({ ...bookData, description: e.target.value });
-                  setFieldConfirmed({ ...fieldConfirmed, description: false });
                 }}
                 rows="3"
                 className="w-full border rounded-lg p-2"
@@ -507,20 +464,12 @@ export default function AddBook() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-gray-700">מחיר *</label>
-                <input
-                  type="checkbox"
-                  checked={fieldConfirmed.price}
-                  onChange={(e) => setFieldConfirmed({ ...fieldConfirmed, price: e.target.checked })}
-                />
-              </div>
+              <label className="block text-gray-700 mb-1">מחיר *</label>
               <input
                 type="number"
                 value={bookData.price}
                 onChange={(e) => {
                   setBookData({ ...bookData, price: e.target.value });
-                  setFieldConfirmed({ ...fieldConfirmed, price: false });
                 }}
                 required
                 min="0"
@@ -530,14 +479,7 @@ export default function AddBook() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-gray-700">קטגוריות *</label>
-                <input
-                  type="checkbox"
-                  checked={fieldConfirmed.categories}
-                  onChange={(e) => setFieldConfirmed({ ...fieldConfirmed, categories: e.target.checked })}
-                />
-              </div>
+              <label className="block text-gray-700 mb-1">קטגוריות *</label>
               <div className="flex items-center gap-2 mb-3">
                 <input
                   type="text"
@@ -555,7 +497,6 @@ export default function AddBook() {
                       if (result.success) {
                         setNewCategory('');
                         setSelectedCategories((prev) => [...prev, result.data.id]);
-                        setFieldConfirmed({ ...fieldConfirmed, categories: false });
                       } else {
                         throw result.error;
                       }
@@ -649,20 +590,12 @@ export default function AddBook() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-gray-700">כמות במלאי *</label>
-                <input
-                  type="checkbox"
-                  checked={fieldConfirmed.stock}
-                  onChange={(e) => setFieldConfirmed({ ...fieldConfirmed, stock: e.target.checked })}
-                />
-              </div>
+              <label className="block text-gray-700 mb-1">כמות במלאי *</label>
               <input
                 type="number"
                 value={bookData.stock}
                 onChange={(e) => {
                   setBookData({ ...bookData, stock: e.target.value });
-                  setFieldConfirmed({ ...fieldConfirmed, stock: false });
                 }}
                 required
                 min="0"
@@ -709,7 +642,7 @@ export default function AddBook() {
             </button>
             <button
               type="submit"
-              disabled={loading || !allConfirmed}
+              disabled={loading}
               className="px-6 py-2 bg-[#112a55] text-white rounded-lg hover:bg-[#1a3c70] disabled:bg-gray-400"
             >
               {loading ? 'שומר...' : 'שמור ספר'}
