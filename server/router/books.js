@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/api/books', async (req, res) => {
   try {
-    const { search, filter } = req.query;
+    const { search, filter, categories, minPrice, maxPrice } = req.query;
     let query = `
       SELECT b.*, COALESCE(ARRAY_REMOVE(array_agg(c.name), NULL), '{}') AS categories
       FROM books b
@@ -24,6 +24,24 @@ router.get('/api/books', async (req, res) => {
       conditions.push('b.is_new_arrival = true');
     } else if (filter === 'newInMarket') {
       conditions.push('b.is_new_in_market = true');
+    }
+
+    if (categories) {
+      const ids = categories.split(',').map(id => parseInt(id, 10)).filter(Boolean);
+      if (ids.length) {
+        params.push(ids);
+        conditions.push(`b.id IN (SELECT book_id FROM book_categories WHERE category_id = ANY($${params.length}))`);
+      }
+    }
+
+    if (minPrice) {
+      params.push(parseFloat(minPrice));
+      conditions.push(`b.price >= $${params.length}`);
+    }
+
+    if (maxPrice) {
+      params.push(parseFloat(maxPrice));
+      conditions.push(`b.price <= $${params.length}`);
     }
 
     if (conditions.length) {

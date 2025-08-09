@@ -1,34 +1,29 @@
 import { create } from 'zustand';
 import { apiGet, apiPost } from '../lib/apiClient';
 
-const useBooksStore = create((set) => ({
-  books: [],
-  loading: true,
-  error: null,
-
-  initialize: async () => {
+const useBooksStore = create((set) => {
+  const fetchBooks = async (params = {}) => {
     try {
       set({ loading: true, error: null });
-      const books = await apiGet('/api/books');
+      const query = new URLSearchParams(params).toString();
+      const books = await apiGet(`/api/books${query ? `?${query}` : ''}`);
       set({ books, loading: false });
     } catch (error) {
       console.error('Error loading books:', error);
       set({ error: error.message, loading: false });
     }
-  },
+  };
 
-  searchBooks: async (query) => {
-    try {
-      set({ loading: true, error: null });
-      const books = await apiGet(`/api/books?search=${encodeURIComponent(query)}`);
-      set({ books, loading: false });
-    } catch (error) {
-      console.error('Error searching books:', error);
-      set({ error: error.message, loading: false });
-    }
-  },
+  return {
+    books: [],
+    loading: true,
+    error: null,
 
-  getNewArrivals: async () => {
+    initialize: () => fetchBooks(),
+    searchBooks: (query) => fetchBooks({ search: query }),
+    filterBooks: (filters) => fetchBooks(filters),
+
+    getNewArrivals: async () => {
     try {
       return await apiGet('/api/books?filter=newArrivals');
     } catch (error) {
