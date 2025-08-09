@@ -108,18 +108,36 @@ export default function AddBook() {
         const formData = new FormData();
         formData.append('image', processedFile);
 
-        const aiResponse = await apiPostFormData('/api/analyze-book-image', formData);
+        let aiResponse = await apiPostFormData(
+          '/api/analyze-book-image',
+          formData
+        );
         console.log('AI response', aiResponse);
 
-        if (aiResponse && typeof aiResponse === 'object') {
-          setAiData(aiResponse);
-          setBookData(prev => ({
-            ...prev,
-            title: aiResponse.title || '',
-            author: aiResponse.author || '',
-            description: aiResponse.description || '',
-            isbn: aiResponse.isbn || ''
-          }));
+        if (typeof aiResponse === 'string') {
+          try {
+            aiResponse = JSON.parse(aiResponse);
+          } catch {
+            aiResponse = null;
+          }
+        }
+
+        if (aiResponse && typeof aiResponse === 'object' && !Array.isArray(aiResponse)) {
+          if (aiResponse.error) {
+            console.warn('AI analysis error:', aiResponse.error);
+            alert(
+              `שגיאה בזיהוי הספר: ${aiResponse.error}. אנא הזן את הפרטים ידנית.`
+            );
+          } else {
+            setAiData(aiResponse);
+            setBookData(prev => ({
+              ...prev,
+              title: aiResponse.title || '',
+              author: aiResponse.author || '',
+              description: aiResponse.description || '',
+              isbn: aiResponse.isbn || ''
+            }));
+          }
         } else {
           console.warn('Invalid AI response:', aiResponse);
           alert('שגיאה בזיהוי הספר: לא התקבלו נתונים. אנא הזן את הפרטים ידנית.');
