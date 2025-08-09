@@ -111,14 +111,19 @@ export default function AddBook() {
         const aiResponse = await apiPostFormData('/api/analyze-book-image', formData);
         console.log('AI response', aiResponse);
 
-        setAiData(aiResponse);
-        setBookData(prev => ({
-          ...prev,
-          title: aiResponse.title || '',
-          author: aiResponse.author || '',
-          description: aiResponse.description || '',
-          isbn: aiResponse.isbn || ''
-        }));
+        if (aiResponse && typeof aiResponse === 'object') {
+          setAiData(aiResponse);
+          setBookData(prev => ({
+            ...prev,
+            title: aiResponse.title || '',
+            author: aiResponse.author || '',
+            description: aiResponse.description || '',
+            isbn: aiResponse.isbn || ''
+          }));
+        } else {
+          console.warn('Invalid AI response:', aiResponse);
+          alert('שגיאה בזיהוי הספר: לא התקבלו נתונים. אנא הזן את הפרטים ידנית.');
+        }
 
         setStep(3);
       } catch (error) {
