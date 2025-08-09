@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Upload, ArrowRight, Loader, Plus } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { apiPostFormData, API_URL } from '../../lib/apiClient';
@@ -28,6 +28,59 @@ export default function AddBook() {
     categories: false
   });
   const allConfirmed = Object.values(fieldConfirmed).every(Boolean);
+
+  const buildCategoryTree = (cats) => {
+    const map = {};
+    const roots = [];
+
+    cats.forEach(cat => {
+      map[cat.id] = { ...cat, children: [] };
+    });
+
+    cats.forEach(cat => {
+      if (cat.parent_id) {
+        map[cat.parent_id]?.children.push(map[cat.id]);
+      } else {
+        roots.push(map[cat.id]);
+      }
+    });
+
+    return roots;
+  };
+
+  const categoryTree = useMemo(() => buildCategoryTree(categories), [categories]);
+
+  const renderCategoryOption = (category, level = 0) => (
+    <div key={category.id}>
+      <label
+        className="flex items-center gap-2 p-2 border rounded hover:bg-gray-50"
+        style={{ marginRight: `${level * 16}px` }}
+      >
+        <input
+          type="checkbox"
+          checked={selectedCategories.includes(category.id)}
+          onChange={(e) => {
+            let updated;
+            if (e.target.checked) {
+              updated = [...selectedCategories, category.id];
+            } else {
+              updated = selectedCategories.filter(id => id !== category.id);
+            }
+            setSelectedCategories(updated);
+            setFieldConfirmed({ ...fieldConfirmed, categories: false });
+            console.log('Selected categories', updated);
+          }}
+          className="form-checkbox h-5 w-5 text-[#112a55]"
+        />
+        <span>{category.name}</span>
+      </label>
+      {category.children?.length > 0 && (
+        <div className="mt-1 space-y-1">
+          {category.children.map(child => renderCategoryOption(child, level + 1))}
+        </div>
+      )}
+    </div>
+  );
 
   useEffect(() => {
     console.log('Initializing categories');
@@ -501,28 +554,8 @@ export default function AddBook() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border p-2 rounded">
-                {categories.map(category => (
-                  <label key={category.id} className="flex items-center gap-2 p-2 border rounded hover:bg-gray-50">
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(category.id)}
-                      onChange={(e) => {
-                        let updated;
-                        if (e.target.checked) {
-                          updated = [...selectedCategories, category.id];
-                        } else {
-                          updated = selectedCategories.filter(id => id !== category.id);
-                        }
-                        setSelectedCategories(updated);
-                        setFieldConfirmed({ ...fieldConfirmed, categories: false });
-                        console.log('Selected categories', updated);
-                      }}
-                      className="form-checkbox h-5 w-5 text-[#112a55]"
-                    />
-                    <span>{category.name}</span>
-                  </label>
-                ))}
+              <div className="space-y-1 max-h-48 overflow-y-auto border p-2 rounded">
+                {categoryTree.map(category => renderCategoryOption(category))}
               </div>
               {selectedCategories.length === 0 && (
                 <p className="text-red-500 text-sm mt-1">יש לבחור לפחות קטגוריה אחת</p>
