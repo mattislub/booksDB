@@ -16,6 +16,36 @@ const exec = promisify(cpExec);
 const MAX_IMAGE_SIZE_KB = 300;
 const MAX_IMAGE_SIZE = MAX_IMAGE_SIZE_KB * 1024;
 
+// Compress and optionally resize an image until it is under the size limit
+async function compressAndSave(inputPath, outputPath) {
+  let quality = 80;
+  let buffer = await sharp(inputPath).rotate().jpeg({ quality }).toBuffer();
+  let metadata = await sharp(buffer).metadata();
+
+  // Reduce quality first
+  while (buffer.length > MAX_IMAGE_SIZE && quality > 30) {
+    quality -= 10;
+    buffer = await sharp(buffer).jpeg({ quality }).toBuffer();
+    metadata = await sharp(buffer).metadata();
+  }
+
+  // If still too large, gradually shrink dimensions
+  while (buffer.length > MAX_IMAGE_SIZE && metadata.width > 100) {
+    const newWidth = Math.round(metadata.width * 0.9);
+    buffer = await sharp(buffer)
+      .resize({ width: newWidth, withoutEnlargement: true })
+      .jpeg({ quality })
+      .toBuffer();
+    metadata = await sharp(buffer).metadata();
+  }
+
+  await fs.promises.writeFile(outputPath, buffer);
+  if (outputPath !== inputPath) {
+    await fs.promises.unlink(inputPath);
+  }
+  return buffer.length;
+}
+
 const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, uploadDir),
   filename: (_, file, cb) => {
@@ -77,14 +107,7 @@ router.post('/api/images/compress', async (req, res) => {
       const originalSize = (await fs.promises.stat(filePath)).size;
       let finalSize = originalSize;
       if (originalSize > MAX_IMAGE_SIZE) {
-        let quality = 80;
-        let buffer = await sharp(filePath).jpeg({ quality }).toBuffer();
-        while (buffer.length > MAX_IMAGE_SIZE && quality > 30) {
-          quality -= 10;
-          buffer = await sharp(filePath).jpeg({ quality }).toBuffer();
-        }
-        await fs.promises.writeFile(filePath, buffer);
-        finalSize = buffer.length;
+        finalSize = await compressAndSave(filePath, filePath);
       }
       results.push({ url, before: originalSize, after: finalSize });
       logInfo(
@@ -138,19 +161,12 @@ router.post('/api/upload-image', (req, res, next) => {
         const ext = path.extname(file).toLowerCase();
         if (!['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext)) continue;
         const fullPath = path.join(extractDir, file);
-        let quality = 80;
-        let buffer = await sharp(fullPath).jpeg({ quality }).toBuffer();
-        while (buffer.length > MAX_IMAGE_SIZE && quality > 30) {
-          quality -= 10;
-          buffer = await sharp(fullPath).jpeg({ quality }).toBuffer();
-        }
         const newName = `${path.parse(file).name}.jpg`;
         const newPath = path.join(extractDir, newName);
-        await fs.promises.writeFile(newPath, buffer);
-        if (newPath !== fullPath) await fs.promises.unlink(fullPath);
+        const finalSize = await compressAndSave(fullPath, newPath);
         urls.push(`/uploads/${baseName}/${newName}`);
         logInfo(
-          `Uploaded image ${newName}: ${Math.round(buffer.length / 1024)}kb`
+          `Uploaded image ${newName}: ${Math.round(finalSize / 1024)}kb`
         );
       }
       return res.json({ urls });
@@ -165,20 +181,9 @@ router.post('/api/upload-image', (req, res, next) => {
   let finalSize = originalSize;
 
   try {
-    let quality = 80;
-    let buffer = await sharp(filePath).jpeg({ quality }).toBuffer();
-    while (buffer.length > MAX_IMAGE_SIZE && quality > 30) {
-      quality -= 10;
-      buffer = await sharp(filePath).jpeg({ quality }).toBuffer();
-    }
-    finalSize = buffer.length;
-
     const newFilename = `${path.parse(req.file.filename).name}.jpg`;
     const finalPath = path.join(uploadDir, newFilename);
-    await fs.promises.writeFile(finalPath, buffer);
-    if (finalPath !== filePath) {
-      await fs.promises.unlink(filePath);
-    }
+    finalSize = await compressAndSave(filePath, finalPath);
     req.file.filename = newFilename;
   } catch (err) {
     logError(err);
