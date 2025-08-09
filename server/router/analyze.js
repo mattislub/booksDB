@@ -72,8 +72,8 @@ router.post(
             {
               type: 'text',
               text:
-                'Extract the book title, author, description and ISBN from this book cover. ' +
-                'Respond in JSON with keys "title", "author", "description", "isbn". ' +
+                'Extract the book title, author, description, ISBN and suggested categories from this book cover. ' +
+                'Respond in JSON with keys "title", "author", "description", "isbn", "categories" (an array of category names in Hebrew). ' +
                 'The description must be written in Hebrew only.',
             },
             {
@@ -92,9 +92,12 @@ router.post(
         temperature: 0,
         response_format: { type: 'json_object' },
       });
-      let metadata = { title: '', author: '', description: '', isbn: '' };
+      let metadata = { title: '', author: '', description: '', isbn: '', categories: [] };
       try {
         metadata = JSON.parse(chat.choices[0].message.content);
+        if (!Array.isArray(metadata.categories)) {
+          metadata.categories = [];
+        }
       } catch (e) {
         console.error('Failed to parse OpenAI response:', chat.choices[0].message.content);
       }

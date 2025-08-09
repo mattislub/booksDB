@@ -95,6 +95,22 @@ export default function AddBook() {
       initCategories();
     }
   }, [mode, step, categories.length, initCategories]);
+
+  useEffect(() => {
+    if (aiData?.categories && categories.length > 0) {
+      const matched = categories
+        .filter(cat =>
+          aiData.categories.some(name =>
+            name.trim().toLowerCase() === cat.name.trim().toLowerCase()
+          )
+        )
+        .map(cat => cat.id);
+      if (matched.length > 0) {
+        setSelectedCategories(matched);
+        setFieldConfirmed(prev => ({ ...prev, categories: false }));
+      }
+    }
+  }, [aiData, categories]);
   const [bookData, setBookData] = useState({
     title: '',
     author: '',
