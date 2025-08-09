@@ -79,6 +79,7 @@ const useBooksStore = create((set) => {
       return { success: false, error };
     }
   }
-}));
+  };
+});
 
 export default useBooksStore;
