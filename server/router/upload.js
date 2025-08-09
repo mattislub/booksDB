@@ -100,13 +100,18 @@ const singleUpload = upload.single('image');
 router.post('/api/upload-image', (req, res, next) => {
   singleUpload(req, res, (err) => {
     if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+      logError(`Upload failed: file too large (${err.message})`);
       return res.status(413).json({ error: 'File too large' });
     }
-    if (err) return res.status(500).json({ error: 'Upload failed' });
+    if (err) {
+      logError(`Upload failed: ${err.message}`);
+      return res.status(500).json({ error: 'Upload failed' });
+    }
     next();
   });
 }, async (req, res) => {
   if (!req.file) {
+    logError('Upload failed: no file uploaded');
     return res.status(400).json({ error: 'No file uploaded' });
   }
 
