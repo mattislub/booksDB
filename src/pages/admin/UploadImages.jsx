@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, Loader } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { apiPostFormData, apiGet, apiPost, API_URL } from '../../lib/apiClient';
 
 export default function UploadImages() {
@@ -8,6 +9,7 @@ export default function UploadImages() {
   const [loading, setLoading] = useState(false);
   const [serverImages, setServerImages] = useState([]);
   const [selected, setSelected] = useState([]);
+  const navigate = useNavigate();
 
   const handleFilesChange = (e) => {
     setFiles(Array.from(e.target.files));
@@ -123,7 +125,7 @@ export default function UploadImages() {
           </button>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {serverImages.map((img) => (
-              <div key={img.path} className="border rounded overflow-hidden relative">
+              <div key={img.path} className="border rounded overflow-hidden relative flex flex-col">
                 <input
                   type="checkbox"
                   className="absolute top-2 left-2"
@@ -138,6 +140,12 @@ export default function UploadImages() {
                 <div className="p-1 text-xs text-center">
                   {(img.size / 1024).toFixed(1)} KB
                 </div>
+                <button
+                  onClick={() => navigate(`/admin/add-book?mode=ai&image=${encodeURIComponent(img.url)}`)}
+                  className="bg-[#a48327] text-white text-xs py-1 hover:bg-[#916f22]"
+                >
+                  רישום חכם
+                </button>
               </div>
             ))}
           </div>
