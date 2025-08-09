@@ -17,15 +17,15 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/admin" element={<Dashboard />} />
-        <Route path="/admin/orders" element={<Orders />} />
-        <Route path="/admin/products" element={<Products />} />
-        <Route path="/admin/add-book" element={<AddBook />} />
-        <Route path="/admin/categories" element={<Categories />} />
-        <Route path="/admin/reports" element={<Reports />} />
-        <Route path="/admin/email-preview" element={<EmailPreview />} />
-        <Route path="/admin/settings" element={<Settings />} />
-        <Route path="/admin/upload-images" element={<UploadImages />} />
+        <Route path="/admin/*" element={<Dashboard />} />
+        <Route path="/admin/orders/*" element={<Orders />} />
+        <Route path="/admin/products/*" element={<Products />} />
+        <Route path="/admin/add-book/*" element={<AddBook />} />
+        <Route path="/admin/categories/*" element={<Categories />} />
+        <Route path="/admin/reports/*" element={<Reports />} />
+        <Route path="/admin/email-preview/*" element={<EmailPreview />} />
+        <Route path="/admin/settings/*" element={<Settings />} />
+        <Route path="/admin/upload-images/*" element={<UploadImages />} />
       </Routes>
     </Router>
   </React.StrictMode>,
