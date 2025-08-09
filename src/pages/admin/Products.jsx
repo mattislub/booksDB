@@ -3,6 +3,8 @@ import { Search, Plus, Edit2, Trash2, Image } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import useBooksStore from '../../store/booksStore';
 import useCategoriesStore from '../../store/categoriesStore';
+import { apiPostFormData, API_URL } from '../../lib/apiClient';
+import { compressImage } from '../../lib/imageUtils';
 
 export default function Products() {
   const {
@@ -164,10 +166,27 @@ export default function Products() {
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.value;
-    setFormData({ ...formData, image_url: file });
-    setImagePreview(file);
+  const handleImageUrlChange = (e) => {
+    const url = e.target.value;
+    setFormData({ ...formData, image_url: url });
+    setImagePreview(url);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImage(file, 0.3);
+      const form = new FormData();
+      form.append('image', compressed);
+      const res = await apiPostFormData('/api/upload-image', form);
+      const url = `${API_URL}${res.url}`;
+      setFormData(prev => ({ ...prev, image_url: url }));
+      setImagePreview(url);
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      alert('שגיאה בהעלאת התמונה');
+    }
   };
 
   const filteredBooks = books.filter(book =>
@@ -493,22 +512,30 @@ export default function Products() {
               </div>
 
               <div>
-                <label className="block text-gray-700 mb-1">תמונה (URL)</label>
-                <div className="flex gap-4 items-start">
-                  <input
-                    type="text"
-                    value={formData.image_url}
-                    onChange={handleImageChange}
-                    className="flex-1 border rounded-lg p-2"
-                    placeholder="הכנס קישור לתמונה"
-                  />
-                  {imagePreview && (
-                    <img
-                      src={imagePreview}
-                      alt="תצוגה מקדימה"
-                      className="w-20 h-20 object-contain border rounded"
+                <label className="block text-gray-700 mb-1">תמונה</label>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-4 items-start">
+                    <input
+                      type="text"
+                      value={formData.image_url}
+                      onChange={handleImageUrlChange}
+                      className="flex-1 border rounded-lg p-2"
+                      placeholder="הכנס קישור לתמונה"
                     />
-                  )}
+                    {imagePreview && (
+                      <img
+                        src={imagePreview}
+                        alt="תצוגה מקדימה"
+                        className="w-20 h-20 object-contain border rounded"
+                      />
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="w-full border rounded-lg p-2"
+                  />
                 </div>
               </div>
 
