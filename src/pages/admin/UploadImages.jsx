@@ -65,7 +65,8 @@ export default function UploadImages() {
   const handleCompressSelected = async () => {
     if (selected.length === 0) return;
     try {
-      await apiPost('/api/images/compress', { urls: selected });
+      const urls = selected.map((url) => url.replace(API_URL, ''));
+      await apiPost('/api/images/compress', { urls });
       await fetchImages();
       setSelected([]);
     } catch (err) {
