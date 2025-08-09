@@ -148,6 +148,13 @@ export default function AddBook() {
     }
   };
 
+  useEffect(() => {
+    const imageUrl = searchParams.get('image');
+    if (imageUrl && mode !== 'select') {
+      handleZipSelection(imageUrl);
+    }
+  }, [searchParams, mode]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!window.confirm('לאשר את נתוני הספר ולרשום אותו באתר?')) return;
