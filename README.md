@@ -9,8 +9,9 @@ Create a `.env` file (you can copy `.env.example`) and set the following variabl
 - `DATABASE_URL` – PostgreSQL connection string used by the API server.
 - `PORT` – Port for the Express server (defaults to `3000` if not set).
 - `OPENAI_API_KEY` – API key with access to GPT‑4 Vision used to extract book
-  details directly from uploaded cover images. If omitted, the `/api/analyze-book-image`
-  endpoint will return a `503` response and book image analysis will be disabled.
+  details and suggested categories directly from uploaded cover images. If omitted,
+  the `/api/analyze-book-image` endpoint will return a `503` response and book image
+  analysis will be disabled.
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` – SMTP credentials used to
   send confirmation emails after an order is placed. If these are not set,
   the server will skip sending emails.
