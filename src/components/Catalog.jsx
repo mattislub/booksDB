@@ -1,22 +1,47 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { ShoppingCart, Plus, Eye } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import useBooksStore from '../store/booksStore';
 import useCartStore from '../store/cartStore';
+import useCategoriesStore from '../store/categoriesStore';
 
 export default function Catalog() {
-  const { books, loading, error, initialize, searchBooks } = useBooksStore();
+  const { books, loading, error, initialize, filterBooks } = useBooksStore();
+  const { categories, initialize: initCategories } = useCategoriesStore();
   const { addItem } = useCartStore();
   const location = useLocation();
   const searchQuery = new URLSearchParams(location.search).get("search") || "";
 
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+
   useEffect(() => {
-    if (searchQuery) {
-      searchBooks(searchQuery);
+    initCategories();
+  }, [initCategories]);
+
+  const applyFilters = () => {
+    const params = {};
+    if (searchQuery) params.search = searchQuery;
+    if (selectedCategories.length) params.categories = selectedCategories.join(',');
+    if (minPrice) params.minPrice = minPrice;
+    if (maxPrice) params.maxPrice = maxPrice;
+    if (Object.keys(params).length) {
+      filterBooks(params);
     } else {
       initialize();
     }
-  }, [searchQuery, initialize, searchBooks]);
+  };
+
+  useEffect(() => {
+    applyFilters();
+  }, [searchQuery]);
+
+  const toggleCategory = (id) => {
+    setSelectedCategories(prev =>
+      prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]
+    );
+  };
 
   if (loading) return <div className="text-center py-8">טוען...</div>;
   if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
@@ -24,6 +49,54 @@ export default function Catalog() {
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <h2 className="text-3xl font-bold mb-6 text-center text-[#112a55]">קטלוג הספרים</h2>
+
+      <div className="mb-6 bg-white p-4 rounded-lg shadow">
+        <h3 className="font-semibold mb-2">סינון מתקדם</h3>
+        <div className="flex flex-col gap-4 md:flex-row md:items-end">
+          <div className="flex-1">
+            <span className="font-medium mb-1 block">קטגוריות</span>
+            <div className="flex flex-wrap gap-2">
+              {categories.map(cat => (
+                <label key={cat.id} className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    value={cat.id}
+                    checked={selectedCategories.includes(cat.id)}
+                    onChange={() => toggleCategory(cat.id)}
+                  />
+                  <span>{cat.name}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-end gap-2">
+            <div>
+              <label className="block text-sm mb-1">מחיר מינימלי</label>
+              <input
+                type="number"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                className="border rounded p-1 w-24"
+              />
+            </div>
+            <div>
+              <label className="block text-sm mb-1">מחיר מקסימלי</label>
+              <input
+                type="number"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                className="border rounded p-1 w-24"
+              />
+            </div>
+            <button
+              onClick={applyFilters}
+              className="bg-[#7c1c2c] text-white px-4 py-2 rounded"
+            >
+              סנן
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {books.map((book) => (
