@@ -12,6 +12,10 @@ const uploadDir = path.join(process.cwd(), 'uploads');
 fs.mkdirSync(uploadDir, { recursive: true });
 const exec = promisify(cpExec);
 
+// Target maximum size for uploaded images in kilobytes
+const MAX_IMAGE_SIZE_KB = 300;
+const MAX_IMAGE_SIZE = MAX_IMAGE_SIZE_KB * 1024;
+
 const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, uploadDir),
   filename: (_, file, cb) => {
@@ -72,10 +76,10 @@ router.post('/api/images/compress', async (req, res) => {
     try {
       const originalSize = (await fs.promises.stat(filePath)).size;
       let finalSize = originalSize;
-      if (originalSize > 300 * 1024) {
+      if (originalSize > MAX_IMAGE_SIZE) {
         let quality = 80;
         let buffer = await sharp(filePath).jpeg({ quality }).toBuffer();
-        while (buffer.length > 300 * 1024 && quality > 30) {
+        while (buffer.length > MAX_IMAGE_SIZE && quality > 30) {
           quality -= 10;
           buffer = await sharp(filePath).jpeg({ quality }).toBuffer();
         }
@@ -134,7 +138,12 @@ router.post('/api/upload-image', (req, res, next) => {
         const ext = path.extname(file).toLowerCase();
         if (!['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext)) continue;
         const fullPath = path.join(extractDir, file);
-        const buffer = await sharp(fullPath).jpeg({ quality: 80 }).toBuffer();
+        let quality = 80;
+        let buffer = await sharp(fullPath).jpeg({ quality }).toBuffer();
+        while (buffer.length > MAX_IMAGE_SIZE && quality > 30) {
+          quality -= 10;
+          buffer = await sharp(fullPath).jpeg({ quality }).toBuffer();
+        }
         const newName = `${path.parse(file).name}.jpg`;
         const newPath = path.join(extractDir, newName);
         await fs.promises.writeFile(newPath, buffer);
@@ -156,7 +165,12 @@ router.post('/api/upload-image', (req, res, next) => {
   let finalSize = originalSize;
 
   try {
-    const buffer = await sharp(filePath).jpeg({ quality: 80 }).toBuffer();
+    let quality = 80;
+    let buffer = await sharp(filePath).jpeg({ quality }).toBuffer();
+    while (buffer.length > MAX_IMAGE_SIZE && quality > 30) {
+      quality -= 10;
+      buffer = await sharp(filePath).jpeg({ quality }).toBuffer();
+    }
     finalSize = buffer.length;
 
     const newFilename = `${path.parse(req.file.filename).name}.jpg`;
