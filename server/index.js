@@ -56,7 +56,7 @@ app.use(uploadRouter);
 const distPath = path.join(process.cwd(), 'dist');
 app.use(express.static(distPath));
 
-app.get('/admin/*', (req, res) => {
+app.get('/admin*', (req, res) => {
   res.sendFile(path.join(distPath, 'admin.html'));
 });
 
