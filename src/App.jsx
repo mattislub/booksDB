@@ -53,11 +53,11 @@ function App() {
             <Route path="/shipping" element={<Shipping />} />
             <Route path="/returns" element={<Returns />} />
             <Route path="/faq" element={<FAQ />} />
-            <Route path="/admin" element={<Dashboard />} />
-            <Route path="/admin/orders" element={<Orders />} />
-            <Route path="/admin/products" element={<Products />} />
-            <Route path="/admin/add-book" element={<AddBook />} />
-            <Route path="/admin/reports" element={<Reports />} />
+            <Route path="/admin/*" element={<Dashboard />} />
+            <Route path="/admin/orders/*" element={<Orders />} />
+            <Route path="/admin/products/*" element={<Products />} />
+            <Route path="/admin/add-book/*" element={<AddBook />} />
+            <Route path="/admin/reports/*" element={<Reports />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
