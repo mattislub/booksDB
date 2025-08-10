@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import Header from "./components/Header";
 import Home from './pages/Home';
 import CategoriesView from "./components/CategoriesView";
+import Catalog from "./components/Catalog";
 import BookDetails from "./components/BookDetails";
 import NotFound from "./components/NotFound";
 import About from "./pages/About";
@@ -41,6 +42,7 @@ function App() {
         <main className="max-w-7xl mx-auto px-4 py-8">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/catalog" element={<Catalog />} />
             <Route path="/categories" element={<CategoriesView />} />
             <Route path="/books/:id" element={<BookDetails />} />
             <Route path="/about" element={<About />} />
