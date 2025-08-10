@@ -307,10 +307,10 @@ export default function AddBook() {
 
   if (mode === 'select') {
     return (
-      <div className="max-w-4xl mx-auto p-8">
-        <h1 className="text-3xl font-bold text-[#112a55] mb-8">הוספת ספר חדש</h1>
-        
-        <div className="grid md:grid-cols-2 gap-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#112a55] mb-8">הוספת ספר חדש</h1>
+
+        <div className="grid sm:grid-cols-2 gap-6">
           <button
             onClick={() => setMode('simple')}
             className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow text-center"
@@ -340,13 +340,13 @@ export default function AddBook() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <h1 className="text-3xl font-bold text-[#112a55] mb-8">
+    <div className="max-w-4xl mx-auto p-4 sm:p-8">
+      <h1 className="text-2xl sm:text-3xl font-bold text-[#112a55] mb-8">
         {mode === 'ai' ? 'הוספת ספר - זיהוי חכם' : 'הוספת ספר'}
       </h1>
 
       {mode === 'ai' && step === 1 && (
-        <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-8 text-center">
           <div className="mb-8">
             <h2 className="text-xl font-bold text-[#112a55] mb-4">העלאת תמונת הספר</h2>
             <p className="text-gray-600">העלה תמונה ברורה של כריכת הספר לזיהוי אוטומטי</p>
@@ -359,7 +359,7 @@ export default function AddBook() {
               onChange={handleImageChange}
               className="hidden"
             />
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-[#112a55] transition-colors cursor-pointer">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-8 hover:border-[#112a55] transition-colors cursor-pointer">
               <Upload className="mx-auto text-gray-400 mb-4" size={48} />
               <p className="text-gray-600">לחץ להעלאת תמונה</p>
             </div>
@@ -375,9 +375,9 @@ export default function AddBook() {
       )}
 
       {mode === 'ai' && step === 2 && zipUrls.length > 0 && (
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-8">
           <h2 className="text-xl font-bold text-center mb-4 text-[#112a55]">בחר תמונה</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {zipUrls.map((url, idx) => (
               <img
                 key={idx}
@@ -392,7 +392,7 @@ export default function AddBook() {
       )}
 
       {(mode === 'simple' || step === 3) && (
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8">
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-4 sm:p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {imagePreview && (
               <div className="md:col-span-2">
@@ -626,7 +626,7 @@ export default function AddBook() {
             </div>
           </div>
 
-          <div className="mt-8 flex justify-end gap-4">
+          <div className="mt-8 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-4">
             <button
               type="button"
               onClick={() => {
