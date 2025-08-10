@@ -217,12 +217,14 @@ export default function AdminBookManager() {
           </div>
         </div>
 
-        <button
-          type="submit"
-          className="w-full bg-[#a48327] text-white py-2 rounded hover:bg-[#8b6f1f]"
-        >
-          {formData.id ? "עדכן ספר" : "שמור ספר"}
-        </button>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            className="bg-[#a48327] text-white py-2 px-4 rounded hover:bg-[#8b6f1f]"
+          >
+            {formData.id ? "עדכן ספר" : "שמור ספר"}
+          </button>
+        </div>
         {message && <div className="text-sm mt-2">{message}</div>}
       </form>
 
