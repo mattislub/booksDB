@@ -50,3 +50,13 @@ export const apiPostFormData = async (path, formData) => {
   });
   return handleResponse(res);
 };
+
+export const apiDelete = async (path, body) => {
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'DELETE',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  return handleResponse(res);
+};
