@@ -1,5 +1,6 @@
 import express from 'express';
 import pool from '../db.js';
+import { sendAdminBookMilestoneEmail } from '../email.js';
 
 const router = express.Router();
 
@@ -222,6 +223,12 @@ router.post('/api/books', async (req, res) => {
         [categoryList]
       );
       categoryNames = catRows.map(r => r.name);
+    }
+
+    const { rows: countRows } = await pool.query('SELECT COUNT(*) FROM books');
+    const totalBooks = parseInt(countRows[0].count, 10);
+    if (totalBooks % 25 === 0) {
+      await sendAdminBookMilestoneEmail(totalBooks);
     }
 
     res.json({ ...book, categories: categoryNames, category: categoryNames[0] || null });

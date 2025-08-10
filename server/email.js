@@ -207,6 +207,60 @@ export async function sendAdminOrderEmail(order, items = []) {
   }
 }
 
+export async function sendAdminBookMilestoneEmail(total) {
+  const adminEmails = (process.env.ADMIN_ORDER_EMAILS || '6118842@gmail.com,0121718aaa@gmail.com')
+    .split(',')
+    .map(e => e.trim())
+    .filter(Boolean);
+  if (adminEmails.length === 0) return;
+
+  try {
+    const nodemailer = await import('nodemailer');
+
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.warn('SMTP configuration missing, skipping milestone email send');
+      return;
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+      connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT) || 10000,
+      greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT) || 10000,
+      debug: true,
+    });
+
+    await transporter.verify();
+
+    const subject = 'השג חדש';
+    const text = `האתר מכיל כעת ${total} ספרים.`;
+    const htmlContent = `
+      <h2 style="margin-top:0;">${subject}</h2>
+      <p>האתר מכיל כעת <strong>${total}</strong> ספרים.</p>
+    `;
+    const html = buildEmailTemplate(subject, htmlContent);
+
+    const from = `"תלפיות ספרי קודש" <${process.env.MAIL_FROM || process.env.SMTP_USER}>`;
+
+    await transporter.sendMail({
+      from,
+      to: adminEmails.join(','),
+      subject,
+      text,
+      html,
+    });
+
+    console.log(`Admin milestone email sent for total books ${total}`);
+  } catch (err) {
+    console.error('Error sending admin milestone email:', err?.message || err);
+  }
+}
+
 export async function sendOrderStatusEmail(order) {
   if (!order?.email) return;
 
