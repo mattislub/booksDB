@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import { exec as cpExec } from 'child_process';
 import { promisify } from 'util';
 import { logInfo, logError } from '../logger.js';
+import pool from '../db.js';
 
 const router = express.Router();
 const uploadDir = path.join(process.cwd(), 'uploads');
@@ -74,7 +75,8 @@ async function collectImages(dir) {
         const stat = await fs.promises.stat(fullPath);
         return {
           url: `/uploads/${path.relative(uploadDir, fullPath).replace(/\\/g, '/')}`,
-          size: stat.size
+          size: stat.size,
+          createdAt: stat.mtime
         };
       }
       return [];
@@ -86,7 +88,28 @@ async function collectImages(dir) {
 router.get('/api/images', async (_req, res) => {
   try {
     const images = await collectImages(uploadDir);
-    res.json({ images });
+
+    let used = new Set();
+    try {
+      const { rows } = await pool.query(
+        "SELECT UNNEST(image_urls) AS url FROM books WHERE image_urls IS NOT NULL"
+      );
+      rows.forEach(r => {
+        if (r.url) {
+          const rel = r.url.replace(/^https?:\/\/[^/]+/, '');
+          used.add(rel);
+        }
+      });
+    } catch (err) {
+      logError(err);
+    }
+
+    const data = images.map(img => ({
+      ...img,
+      inUse: used.has(img.url)
+    }));
+
+    res.json({ images: data });
   } catch (err) {
     logError(err);
     res.status(500).json({ error: 'Failed to list images' });
@@ -116,6 +139,29 @@ router.post('/api/images/compress', async (req, res) => {
     } catch (err) {
       logError(err);
       results.push({ url, error: 'Failed to process' });
+    }
+  }
+
+  res.json({ results });
+});
+
+router.delete('/api/images', async (req, res) => {
+  const { urls } = req.body || {};
+  if (!Array.isArray(urls) || urls.length === 0) {
+    return res.status(400).json({ error: 'No urls provided' });
+  }
+
+  const results = [];
+  for (const url of urls) {
+    const relative = url.replace(/^\/uploads\//, '');
+    const filePath = path.join(uploadDir, relative);
+    try {
+      await fs.promises.unlink(filePath);
+      results.push({ url, deleted: true });
+      logInfo(`Deleted image ${url}`);
+    } catch (err) {
+      logError(err);
+      results.push({ url, error: 'Failed to delete' });
     }
   }
 
