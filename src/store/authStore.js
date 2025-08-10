@@ -19,12 +19,17 @@ const useAuthStore = create((set) => ({
         error: null
       });
     } catch (error) {
-      console.error('Error in auth initialization:', error);
-      set({
-        error: 'שגיאה בטעינת המשתמש',
-        loading: false,
-        user: null
-      });
+      if (error?.status === 401) {
+        console.log('No authenticated user found');
+        set({ user: null, loading: false, error: null });
+      } else {
+        console.error('Error in auth initialization:', error);
+        set({
+          error: 'שגיאה בטעינת המשתמש',
+          loading: false,
+          user: null
+        });
+      }
     }
   },
 
