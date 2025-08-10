@@ -10,9 +10,18 @@ export default function Catalog() {
   const { categories, initialize: initCategories } = useCategoriesStore();
   const { addItem } = useCartStore();
   const location = useLocation();
-  const searchQuery = new URLSearchParams(location.search).get("search") || "";
 
-  const [selectedCategories, setSelectedCategories] = useState([]);
+  const searchParams = new URLSearchParams(location.search);
+  const searchQuery = searchParams.get("search") || "";
+  const initialCategories = searchParams.get("categories")
+    ? searchParams
+        .get("categories")
+        .split(',')
+        .map(id => parseInt(id, 10))
+        .filter(Boolean)
+    : [];
+
+  const [selectedCategories, setSelectedCategories] = useState(initialCategories);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
 
@@ -133,7 +142,28 @@ export default function Catalog() {
                     <h3 className="text-xl font-semibold text-[#112a55] mb-2">{book.title}</h3>
                     {(book.categories?.length || book.category) && (
                       <p className="text-sm text-gray-500 mb-2">
-                        קטגוריה: {book.categories?.join(', ') || book.category}
+                        קטגוריה:{' '}
+                        {(book.categories || [book.category]).map((catName, idx, arr) => {
+                          const catObj = categories.find(c => c.name === catName);
+                          const content = catObj ? (
+                            <a
+                              href={`/catalog?categories=${catObj.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline"
+                            >
+                              {catName}
+                            </a>
+                          ) : (
+                            catName
+                          );
+                          return (
+                            <React.Fragment key={catName + idx}>
+                              {content}
+                              {idx < arr.length - 1 && ', '}
+                            </React.Fragment>
+                          );
+                        })}
                       </p>
                     )}
                     <p className="text-sm text-gray-600 mb-2">{book.description}</p>
