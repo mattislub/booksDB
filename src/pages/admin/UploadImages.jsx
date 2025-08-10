@@ -76,20 +76,20 @@ export default function UploadImages() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-8">
-      <h1 className="text-3xl font-bold text-[#112a55] mb-8">העלאת תמונות</h1>
-      <div className="bg-white rounded-xl p-6 shadow-lg">
+    <div className="max-w-2xl mx-auto p-4 sm:p-8">
+      <h1 className="text-2xl sm:text-3xl font-bold text-[#112a55] mb-8">העלאת תמונות</h1>
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg">
         <input
           type="file"
           multiple
           onChange={handleFilesChange}
-          className="mb-4"
+          className="w-full mb-4"
           accept="image/*,.zip"
         />
         <button
           onClick={handleUpload}
           disabled={loading || files.length === 0}
-          className="bg-[#a48327] text-white px-4 py-2 rounded-md hover:bg-[#916f22] disabled:opacity-50 flex items-center gap-2"
+          className="w-full sm:w-auto bg-[#a48327] text-white px-4 py-2 rounded-md hover:bg-[#916f22] disabled:opacity-50 flex items-center gap-2 justify-center"
         >
           {loading ? <Loader className="animate-spin" size={20} /> : <Upload size={20} />}
           העלאה
@@ -98,7 +98,7 @@ export default function UploadImages() {
       {uploadedUrls.length > 0 && (
         <div className="mt-6">
           <h2 className="text-xl font-semibold mb-2">קישורים לתמונות:</h2>
-          <ul className="list-disc pr-5 text-[#112a55] mb-4">
+          <ul className="list-disc pr-5 text-[#112a55] mb-4 break-all">
             {uploadedUrls.map((url) => (
               <li key={url}>
                 <a
@@ -120,7 +120,7 @@ export default function UploadImages() {
           <button
             onClick={handleCompressSelected}
             disabled={selected.length === 0}
-            className="mb-4 bg-[#a48327] text-white px-4 py-2 rounded-md hover:bg-[#916f22] disabled:opacity-50"
+            className="mb-4 w-full sm:w-auto bg-[#a48327] text-white px-4 py-2 rounded-md hover:bg-[#916f22] disabled:opacity-50"
           >
             הקטן תמונות נבחרות
           </button>
