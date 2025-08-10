@@ -393,9 +393,9 @@ export default function AddBook() {
 
       {(mode === 'simple' || step === 3) && (
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-4 sm:p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             {imagePreview && (
-              <div className="md:col-span-2">
+              <div>
                 <img
                   src={imagePreview}
                   alt="תצוגה מקדימה"
@@ -405,7 +405,7 @@ export default function AddBook() {
             )}
 
             {mode === 'simple' && (
-              <div className="md:col-span-2">
+              <div>
                 <label className="block text-gray-700 mb-1">תמונת הספר</label>
                 <input
                   type="file"
@@ -416,7 +416,7 @@ export default function AddBook() {
               </div>
             )}
 
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-gray-700 mb-1">קישורי תמונות נוספים (מופרדים בפסיק)</label>
               <input
                 type="text"
@@ -451,7 +451,7 @@ export default function AddBook() {
               />
             </div>
 
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-gray-700 mb-1">תיאור</label>
               <textarea
                 value={bookData.description}
@@ -603,7 +603,7 @@ export default function AddBook() {
               />
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-2">
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
