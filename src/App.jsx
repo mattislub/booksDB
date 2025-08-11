@@ -76,7 +76,7 @@ function App() {
                   </div>
                   <div className="flex items-center justify-center gap-3">
                     <Mail size={20} className="text-[#f9e79f]" />
-                    <span>info@talpiot-books.co.il</span>
+                    <span>info@talpiot-books.com</span>
                   </div>
                   <div className="flex items-center justify-center gap-3">
                     <Clock size={20} className="text-[#f9e79f]" />
