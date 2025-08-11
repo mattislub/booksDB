@@ -1,27 +1,8 @@
 import React, { useEffect, useState } from "react";
 import useCategoriesStore from '../store/categoriesStore';
 import useBooksStore from '../store/booksStore';
-import { ChevronLeft, Search, BookOpen } from 'lucide-react';
+import { Search, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-function buildCategoryTree(categories) {
-  const map = {};
-  const roots = [];
-
-  categories.forEach(cat => {
-    map[cat.id] = { ...cat, children: [] };
-  });
-
-  categories.forEach(cat => {
-    if (cat.parent_id) {
-      map[cat.parent_id]?.children.push(map[cat.id]);
-    } else {
-      roots.push(map[cat.id]);
-    }
-  });
-
-  return roots;
-}
 
 function CategoryBooks({ books, categoryName, onClose }) {
   return (
@@ -31,13 +12,12 @@ function CategoryBooks({ books, categoryName, onClose }) {
           <h3 className="text-2xl font-bold text-[#112a55]">ספרים בקטגוריית {categoryName}</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
         </div>
-        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {books.length > 0 ? (
             books.map(book => (
-              <Link 
+              <Link
                 to={`/books/${book.id}`}
-                key={book.id} 
+                key={book.id}
                 className="bg-[#f8f6f1] rounded-xl p-4 hover:shadow-lg transition-all duration-300"
               >
                 <div className="flex gap-4">
@@ -67,60 +47,12 @@ function CategoryBooks({ books, categoryName, onClose }) {
   );
 }
 
-function CategoryTree({ categories, books, onViewBooks }) {
-  return (
-    <div className="space-y-4">
-      {categories.map(cat => (
-        <div key={cat.id} className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-[#112a55]">{cat.name}</h3>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => onViewBooks(cat.name)}
-                className="flex items-center gap-2 text-[#a48327] hover:text-[#8b6f1f] transition-colors"
-                title="צפה בכל הספרים"
-              >
-                <BookOpen size={20} />
-                <span>כל הספרים</span>
-              </button>
-              {cat.children.length > 0 && (
-                <ChevronLeft className="text-[#a48327]" size={20} />
-              )}
-            </div>
-          </div>
-          
-          {cat.children.length > 0 && (
-            <div className="mt-4 pr-6 space-y-3">
-              {cat.children.map(child => (
-                <div key={child.id} className="bg-[#f8f6f1] rounded-lg p-4 hover:bg-[#f0ece3] transition-colors duration-200">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#666]">{child.name}</span>
-                    <button
-                      onClick={() => onViewBooks(child.name)}
-                      className="flex items-center gap-2 text-[#a48327] hover:text-[#8b6f1f] transition-colors"
-                      title="צפה בכל הספרים"
-                    >
-                      <BookOpen size={18} />
-                      <span className="text-sm">כל הספרים</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function CategoriesView() {
   const { categories, loading: categoriesLoading, error: categoriesError, initialize: initCategories } = useCategoriesStore();
   const { books, loading: booksLoading, error: booksError, initialize: initBooks } = useBooksStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const categoryTree = buildCategoryTree(categories);
 
   useEffect(() => {
     initCategories();
@@ -150,9 +82,18 @@ export default function CategoriesView() {
   const loading = categoriesLoading || booksLoading;
   const error = categoriesError || booksError;
 
+  const categoriesWithBooks = categories
+    .map(cat => ({
+      ...cat,
+      books: books.filter(book =>
+        book.categories?.some(c => c.toLowerCase() === cat.name.toLowerCase())
+      )
+    }))
+    .filter(cat => cat.books.length > 0);
+
   if (loading) return <div className="text-center py-8">טוען...</div>;
   if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
-  if (categories.length === 0) return <div className="text-center py-8">אין קטגוריות זמינות</div>;
+  if (categoriesWithBooks.length === 0) return <div className="text-center py-8">אין קטגוריות זמינות</div>;
 
   return (
     <div className="max-w-4xl mx-auto p-8">
@@ -175,9 +116,9 @@ export default function CategoriesView() {
       {searchQuery ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredBooks.map(book => (
-            <Link 
+            <Link
               to={`/books/${book.id}`}
-              key={book.id} 
+              key={book.id}
               className="bg-white rounded-xl p-4 shadow-md hover:shadow-lg transition-shadow duration-300"
             >
               <div className="flex gap-4">
@@ -200,11 +141,42 @@ export default function CategoriesView() {
           ))}
         </div>
       ) : (
-        <CategoryTree 
-          categories={categoryTree} 
-          books={books}
-          onViewBooks={handleViewBooks}
-        />
+        <div className="space-y-12">
+          {categoriesWithBooks.map(cat => (
+            <div key={cat.id}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-2xl font-bold text-[#112a55]">{cat.name}</h3>
+                <button
+                  onClick={() => handleViewBooks(cat.name)}
+                  className="flex items-center gap-2 text-[#a48327] hover:text-[#8b6f1f] transition-colors"
+                >
+                  <BookOpen size={20} />
+                  <span>הצג עוד</span>
+                </button>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {cat.books.slice(0, 4).map(book => (
+                  <Link
+                    to={`/books/${book.id}`}
+                    key={book.id}
+                    className="bg-white rounded-xl p-4 hover:shadow-lg transition-shadow duration-300"
+                  >
+                    <img
+                      src={
+                        book.image_urls?.[0] ||
+                        book.image_url ||
+                        `https://via.placeholder.com/100x150.png?text=${encodeURIComponent(book.title)}`
+                      }
+                      alt={book.title}
+                      className="w-full h-40 object-contain bg-white mb-2 rounded"
+                    />
+                    <h4 className="text-sm font-semibold text-[#112a55] truncate">{book.title}</h4>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       {selectedCategory && (
