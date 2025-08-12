@@ -8,7 +8,21 @@ const DEFAULT_API_URL = isLocal
 export const API_URL = import.meta.env.VITE_API_URL || DEFAULT_API_URL;
 
 async function handleResponse(res) {
-  if (res.ok) return res.json();
+  if (res.ok) {
+    // Some endpoints may return empty responses (e.g. 204 No Content) or
+    // non‑JSON payloads. Attempt to parse JSON only when a body is
+    // actually present and looks like JSON. Otherwise return the raw text
+    // or null.
+    const contentLength = res.headers.get('content-length');
+    if (res.status === 204 || contentLength === '0') return null;
+    const text = await res.text();
+    if (!text) return null;
+    try {
+      return JSON.parse(text);
+    } catch (_) {
+      return text;
+    }
+  }
   let message = 'API request failed';
   try {
     const data = await res.json();
