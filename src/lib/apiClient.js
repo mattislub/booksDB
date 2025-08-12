@@ -1,8 +1,9 @@
 const origin =
   typeof window !== 'undefined' ? window.location.origin : '';
-const DEFAULT_API_URL = origin.startsWith('http')
-  ? origin
-  : 'http://localhost:3000';
+const isLocal = origin.includes('localhost') || origin.includes('127.0.0.1');
+const DEFAULT_API_URL = isLocal
+  ? 'http://localhost:3000'
+  : 'https://api.talpiot-books.com';
 
 export const API_URL = import.meta.env.VITE_API_URL || DEFAULT_API_URL;
 
