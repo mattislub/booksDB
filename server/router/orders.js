@@ -10,14 +10,31 @@ router.post('/api/orders', async (req, res) => {
     const user = await getUserFromRequest(req);
     const { items = [], total, shipping_address, phone, notes, email, name } = req.body;
 
+    const { rows: shipRows } = await pool.query(
+      'SELECT value FROM settings WHERE key=$1',
+      ['default_shipping_price']
+    );
+    const shipping_price = Number(shipRows[0]?.value) || 0;
+    const items_total = Number(total) || 0;
+    const order_total = items_total + shipping_price;
+
     if (!user && (!phone || !email)) {
       return res.status(400).json({ error: 'Phone and email required' });
     }
 
     const { rows } = await pool.query(
-      `INSERT INTO orders (user_id, total, name, email, phone, shipping_address, notes)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [user ? user.id : null, total, name || null, email || null, phone || null, shipping_address || null, notes || null]
+      `INSERT INTO orders (user_id, total, shipping_price, name, email, phone, shipping_address, notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+      [
+        user ? user.id : null,
+        order_total,
+        shipping_price,
+        name || null,
+        email || null,
+        phone || null,
+        shipping_address || null,
+        notes || null,
+      ]
     );
     const order = rows[0];
 

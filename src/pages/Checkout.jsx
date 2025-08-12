@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useCartStore from '../store/cartStore';
 import useAuthStore from '../store/authStore';
 import { apiPost } from '../lib/apiClient';
 import { Phone, Mail, MapPin } from 'lucide-react';
+import useSettingsStore from '../store/settingsStore';
 
 export default function Checkout() {
   const navigate = useNavigate();
   const { items, getTotal, clearCart } = useCartStore();
   const { user } = useAuthStore();
+  const { getSetting } = useSettingsStore();
   const [formData, setFormData] = useState({
     name: user?.user_metadata?.name || '',
     phone: user?.user_metadata?.phone || '',
@@ -18,6 +20,13 @@ export default function Checkout() {
   });
   const [status, setStatus] = useState('');
   const [showThankYou, setShowThankYou] = useState(false);
+  const [shippingPrice, setShippingPrice] = useState(0);
+
+  useEffect(() => {
+    getSetting('default_shipping_price').then((val) =>
+      setShippingPrice(Number(val) || 0)
+    );
+  }, [getSetting]);
 
   if (items.length === 0 && !showThankYou) {
     return (
@@ -223,10 +232,18 @@ export default function Checkout() {
               </div>
             ))}
 
-            <div className="border-t pt-4 mt-6">
+            <div className="border-t pt-4 mt-6 space-y-2">
+              <div className="flex justify-between items-center">
+                <span>מחיר פריטים:</span>
+                <span>{getTotal()} ₪</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>דמי משלוח:</span>
+                <span>{shippingPrice} ₪</span>
+              </div>
               <div className="flex justify-between items-center text-lg font-bold">
                 <span>סה"כ לתשלום:</span>
-                <span className="text-[#7c1c2c]">{getTotal()} ₪</span>
+                <span className="text-[#7c1c2c]">{getTotal() + shippingPrice} ₪</span>
               </div>
               <p className="text-gray-500 text-sm mt-2">
                 * התשלום יתבצע במעמד המסירה או בשיחה טלפונית

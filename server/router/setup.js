@@ -78,6 +78,7 @@ router.post('/api/setup', async (req, res) => {
       id SERIAL PRIMARY KEY,
       user_id INTEGER,
       total NUMERIC(10,2) NOT NULL,
+      shipping_price NUMERIC(10,2) DEFAULT 0,
       status TEXT DEFAULT 'pending',
       name TEXT,
       email TEXT,
@@ -86,6 +87,10 @@ router.post('/api/setup', async (req, res) => {
       notes TEXT,
       created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     )`);
+
+    await pool.query(
+      'ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_price NUMERIC(10,2) DEFAULT 0'
+    );
 
     await pool.query(`CREATE TABLE IF NOT EXISTS order_items (
       id SERIAL PRIMARY KEY,

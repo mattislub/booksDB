@@ -55,7 +55,14 @@ export async function sendOrderEmail(order, items = []) {
       .map(i => `${i.title || i.id} x${i.quantity} - ₪${Number(i.price).toFixed(2)}`)
       .join('\n');
 
-    const text = `תודה על הזמנתך!\n\nהזמנה #${order.id}\nסכום כולל: ₪${Number(order.total).toFixed(2)}\n\nפריטים:\n${itemsList}`;
+    const itemsTotal = Number(order.total) - Number(order.shipping_price || 0);
+    const text =
+      `תודה על הזמנתך!` +
+      `\n\nהזמנה #${order.id}` +
+      `\nמחיר פריטים: ₪${itemsTotal.toFixed(2)}` +
+      `\nדמי משלוח: ₪${Number(order.shipping_price || 0).toFixed(2)}` +
+      `\nסה"כ לתשלום: ₪${Number(order.total).toFixed(2)}` +
+      `\n\nפריטים:\n${itemsList}`;
 
     const itemsRows = items
       .map(
@@ -84,8 +91,16 @@ export async function sendOrderEmail(order, items = []) {
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="2" style="padding:8px; text-align:left; font-weight:bold; border-top:1px solid #e2e8f0;">סך הכל</td>
-            <td style="padding:8px; text-align:left; font-weight:bold; border-top:1px solid #e2e8f0;">₪${Number(order.total).toFixed(2)}</td>
+            <td colspan="2" style="padding:8px; text-align:left; border-top:1px solid #e2e8f0;">מחיר פריטים</td>
+            <td style="padding:8px; text-align:left; border-top:1px solid #e2e8f0;">₪${itemsTotal.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td colspan="2" style="padding:8px; text-align:left;">דמי משלוח</td>
+            <td style="padding:8px; text-align:left;">₪${Number(order.shipping_price || 0).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td colspan="2" style="padding:8px; text-align:left; font-weight:bold;">סה"כ לתשלום</td>
+            <td style="padding:8px; text-align:left; font-weight:bold;">₪${Number(order.total).toFixed(2)}</td>
           </tr>
         </tfoot>
       </table>
@@ -200,7 +215,13 @@ export async function sendAdminOrderEmail(order, items = []) {
       .map(i => `${i.title || i.id} x${i.quantity} - ₪${Number(i.price).toFixed(2)}`)
       .join('\n');
 
-    const text = `התקבלה הזמנה חדשה #${order.id}\nסכום כולל: ₪${Number(order.total).toFixed(2)}\n\nפריטים:\n${itemsList}`;
+    const itemsTotal = Number(order.total) - Number(order.shipping_price || 0);
+    const text =
+      `התקבלה הזמנה חדשה #${order.id}` +
+      `\nמחיר פריטים: ₪${itemsTotal.toFixed(2)}` +
+      `\nדמי משלוח: ₪${Number(order.shipping_price || 0).toFixed(2)}` +
+      `\nסה"כ לתשלום: ₪${Number(order.total).toFixed(2)}` +
+      `\n\nפריטים:\n${itemsList}`;
 
     const itemsRows = items
       .map(
@@ -238,8 +259,16 @@ export async function sendAdminOrderEmail(order, items = []) {
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="2" style="padding:8px; text-align:left; font-weight:bold; border-top:1px solid #e2e8f0;">סך הכל</td>
-            <td style="padding:8px; text-align:left; font-weight:bold; border-top:1px solid #e2e8f0;">₪${Number(order.total).toFixed(2)}</td>
+            <td colspan="2" style="padding:8px; text-align:left; border-top:1px solid #e2e8f0;">מחיר פריטים</td>
+            <td style="padding:8px; text-align:left; border-top:1px solid #e2e8f0;">₪${itemsTotal.toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td colspan="2" style="padding:8px; text-align:left;">דמי משלוח</td>
+            <td style="padding:8px; text-align:left;">₪${Number(order.shipping_price || 0).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td colspan="2" style="padding:8px; text-align:left; font-weight:bold;">סה"כ לתשלום</td>
+            <td style="padding:8px; text-align:left; font-weight:bold;">₪${Number(order.total).toFixed(2)}</td>
           </tr>
         </tfoot>
       </table>
