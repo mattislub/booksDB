@@ -221,7 +221,8 @@ export async function sendAdminOrderEmail(order, items = []) {
       `\nמחיר פריטים: ₪${itemsTotal.toFixed(2)}` +
       `\nדמי משלוח: ₪${Number(order.shipping_price || 0).toFixed(2)}` +
       `\nסה"כ לתשלום: ₪${Number(order.total).toFixed(2)}` +
-      `\n\nפריטים:\n${itemsList}`;
+      `\n\nפריטים:\n${itemsList}` +
+      `\n\nניהול הזמנות: https://talpiot-books.com/admin/orders`;
 
     const itemsRows = items
       .map(
@@ -272,6 +273,9 @@ export async function sendAdminOrderEmail(order, items = []) {
           </tr>
         </tfoot>
       </table>
+      <p style="margin-top:20px; text-align:center;">
+        <a href="https://talpiot-books.com/admin/orders">ניהול הזמנות</a>
+      </p>
     `;
 
     const html = buildEmailTemplate('התקבלה הזמנה חדשה', htmlContent);
