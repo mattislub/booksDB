@@ -9,7 +9,8 @@ const sampleOrder = {
     { title: "שולחן ערוך", quantity: 1, price: 120 },
     { title: "משנה ברורה", quantity: 2, price: 110 }
   ],
-  total: 340,
+  total: 365,
+  shippingPrice: 25,
   shippingAddress: "רחוב הרצל 1, תל אביב"
 };
 
@@ -45,6 +46,12 @@ export default function EmailPreview() {
         </ul>
         
         <p style="font-weight: bold; text-align: left; margin-top: 15px;">
+          מחיר פריטים: ${orderData.total - orderData.shippingPrice} ₪
+        </p>
+        <p style="font-weight: bold; text-align: left;">
+          דמי משלוח: ${orderData.shippingPrice} ₪
+        </p>
+        <p style="font-weight: bold; text-align: left;">
           סה"כ לתשלום: ${orderData.total} ₪
         </p>
       </div>
@@ -88,6 +95,12 @@ export default function EmailPreview() {
         </ul>
         
         <p style="font-weight: bold; text-align: left; margin-top: 15px;">
+          מחיר פריטים: ${orderData.total - orderData.shippingPrice} ₪
+        </p>
+        <p style="font-weight: bold; text-align: left;">
+          דמי משלוח: ${orderData.shippingPrice} ₪
+        </p>
+        <p style="font-weight: bold; text-align: left;">
           סה"כ: ${orderData.total} ₪
         </p>
       </div>

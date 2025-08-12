@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS orders (
   id SERIAL PRIMARY KEY,
   user_id INTEGER,
   total NUMERIC(10,2) NOT NULL,
+  shipping_price NUMERIC(10,2) DEFAULT 0,
   status TEXT DEFAULT 'pending',
   name TEXT,
   email TEXT,
