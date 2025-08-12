@@ -16,6 +16,7 @@ import contentRouter from './router/content.js';
 import settingsRouter from './router/settings.js';
 import setupRouter from './router/setup.js';
 import uploadRouter from './router/upload.js';
+import contactRouter from './router/contact.js';
 
 dotenv.config();
 
@@ -52,6 +53,7 @@ app.use(contentRouter);
 app.use(settingsRouter);
 app.use(setupRouter);
 app.use(uploadRouter);
+app.use(contactRouter);
 
 const distPath = path.join(process.cwd(), 'dist');
 app.use(express.static(distPath));

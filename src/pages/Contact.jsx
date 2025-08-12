@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useContentStore from '../store/contentStore';
+import { apiPost } from '../lib/apiClient';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -26,11 +27,13 @@ export default function Contact() {
     e.preventDefault();
     setStatus('שולח...');
     
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      await apiPost('/api/contact', formData);
       setStatus('ההודעה נשלחה בהצלחה!');
       setFormData({ name: '', email: '', phone: '', message: '' });
-    }, 1000);
+    } catch (err) {
+      setStatus('אירעה שגיאה בשליחת ההודעה');
+    }
   };
 
   const handleChange = (e) => {
