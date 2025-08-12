@@ -49,7 +49,7 @@ export default function Header() {
             <img
               src="/logo.png"
               alt="ספרי קודש תלפיות"
-              className="object-contain h-36"
+              className="object-contain h-40"
               style={{ filter: 'brightness(0.85)' }}
             />
             <p className="text-[#112a55] text-2xl font-bold tracking-wide" style={{ fontFamily: 'Frank Ruhl Libre, serif' }}>המקום המושלם לספרי קודש במחירים נוחים</p>
