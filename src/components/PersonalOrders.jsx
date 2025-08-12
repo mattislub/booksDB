@@ -71,13 +71,23 @@ export default function PersonalOrders() {
                   </div>
                 ))}
               </div>
-              <div className="mt-4 flex justify-between items-center">
-                <span className="font-bold">סה"כ: {order.total} ₪</span>
-                <span
-                  className={`px-2 py-1 rounded text-sm ${order.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
-                >
-                  {order.status === 'completed' ? 'הושלם' : 'בטיפול'}
-                </span>
+              <div className="mt-4 space-y-1">
+                <div className="flex justify-between">
+                  <span>מחיר פריטים:</span>
+                  <span>{Number(order.total) - Number(order.shipping_price || 0)} ₪</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>דמי משלוח:</span>
+                  <span>{Number(order.shipping_price || 0)} ₪</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-bold">סה"כ: {order.total} ₪</span>
+                  <span
+                    className={`px-2 py-1 rounded text-sm ${order.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
+                  >
+                    {order.status === 'completed' ? 'הושלם' : 'בטיפול'}
+                  </span>
+                </div>
               </div>
             </div>
           ))}

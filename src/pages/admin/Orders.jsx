@@ -32,6 +32,8 @@ export default function Orders() {
           email: o.email,
           phone: o.phone,
           total: Number(o.total),
+          shippingPrice: Number(o.shipping_price || 0),
+          itemsTotal: Number(o.total) - Number(o.shipping_price || 0),
           status: o.status,
           items: (o.order_items || []).map((item) => ({
             title: item.title,
@@ -167,7 +169,15 @@ export default function Orders() {
                 </div>
               </div>
 
-              <div className="border-t pt-4">
+              <div className="border-t pt-4 space-y-2">
+                <div className="flex justify-between">
+                  <span>מחיר פריטים</span>
+                  <span>{selectedOrder.itemsTotal} ₪</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>דמי משלוח</span>
+                  <span>{selectedOrder.shippingPrice} ₪</span>
+                </div>
                 <div className="flex justify-between font-bold">
                   <span>סה"כ</span>
                   <span>{selectedOrder.total} ₪</span>
@@ -176,6 +186,35 @@ export default function Orders() {
 
               <div className="flex justify-end gap-4">
                 <button className="px-4 py-2 border rounded hover:bg-gray-50">הדפס</button>
+                {selectedOrder.shippingPrice > 0 && (
+                  <button
+                    onClick={() => {
+                      apiPost(`/api/admin/orders/${selectedOrder.id}/free-shipping`)
+                        .then(updated => {
+                          setOrders(prev => prev.map(o =>
+                            o.id === updated.id
+                              ? {
+                                  ...o,
+                                  total: Number(updated.total),
+                                  shippingPrice: Number(updated.shipping_price),
+                                  itemsTotal: Number(updated.total) - Number(updated.shipping_price),
+                                }
+                              : o
+                          ));
+                          setSelectedOrder(prev => ({
+                            ...prev,
+                            total: Number(updated.total),
+                            shippingPrice: Number(updated.shipping_price),
+                            itemsTotal: Number(updated.total) - Number(updated.shipping_price),
+                          }));
+                        })
+                        .catch(err => console.error('❌ שגיאה בעדכון משלוח:', err));
+                    }}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                  >
+                    הענק משלוח חינם
+                  </button>
+                )}
                 <select
                   value={statusUpdate}
                   onChange={(e) => setStatusUpdate(e.target.value)}
