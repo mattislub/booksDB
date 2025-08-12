@@ -1,6 +1,5 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import cors from 'cors';
 import path from 'path';
 import { logError } from './logger.js';
 import pool from './db.js';
@@ -27,12 +26,6 @@ if (!process.env.OPENAI_API_KEY) {
 }
 
 const app = express();
-const corsOptions = {
-  origin: process.env.CORS_ORIGIN || true,
-  credentials: true
-};
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use((req, res, next) => {
