@@ -18,6 +18,7 @@ Create a `.env` file (you can copy `.env.example`) and set the following variabl
 - `SMTP_SECURE`, `SMTP_CONNECTION_TIMEOUT`, `SMTP_GREETING_TIMEOUT`, `MAIL_FROM`
   – optional settings for the SMTP transport. `SMTP_SECURE` enables TLS when set
   to `true`; the timeout values are in milliseconds.
+- `CONTACT_EMAIL` – address to receive messages from the contact form.
 
 The Vite development server also listens on port `3000`. If you plan to run the
 API server and frontend simultaneously, set `PORT` to a different value (for
@@ -108,6 +109,7 @@ This serves the content of the `dist` directory on the port configured in `vite.
    - `SMTP_SECURE`, `SMTP_CONNECTION_TIMEOUT`, `SMTP_GREETING_TIMEOUT`, `MAIL_FROM` –
      הגדרות נוספות אופציונליות לשרת ה‑SMTP (`SMTP_SECURE` מפעיל TLS, ערכי ה־timeout
      במילישניות).
+   - `CONTACT_EMAIL` – כתובת שאליה יישלחו הודעות מטופס "צור קשר".
 
 ### התקנת חבילות
 

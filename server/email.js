@@ -110,6 +110,62 @@ export async function sendOrderEmail(order, items = []) {
   }
 }
 
+export async function sendContactEmail({ name, email, phone, message }) {
+  try {
+    const nodemailer = await import('nodemailer');
+
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.warn('SMTP configuration missing, skipping contact email send');
+      return;
+    }
+
+    const to = process.env.CONTACT_EMAIL;
+    if (!to) {
+      console.warn('CONTACT_EMAIL not set, skipping contact email send');
+      return;
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+      connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT) || 10000,
+      greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT) || 10000,
+      debug: true,
+    });
+
+    await transporter.verify();
+
+    const text = `שם: ${name}\nדוא"ל: ${email}\nטלפון: ${phone || ''}\n\n${message}`;
+    const htmlContent = `
+      <h2 style="margin-top:0;">פניית צור קשר חדשה</h2>
+      <p><strong>שם:</strong> ${name}</p>
+      <p><strong>דוא"ל:</strong> ${email}</p>
+      ${phone ? `<p><strong>טלפון:</strong> ${phone}</p>` : ''}
+      <p><strong>הודעה:</strong></p>
+      <p>${message}</p>
+    `;
+    const html = buildEmailTemplate('פניית צור קשר', htmlContent);
+    const from = `"תלפיות ספרי קודש" <${process.env.MAIL_FROM || process.env.SMTP_USER}>`;
+
+    await transporter.sendMail({
+      from,
+      to,
+      subject: 'פניית צור קשר חדשה',
+      text,
+      html,
+    });
+
+    console.log(`Contact email sent from ${email}`);
+  } catch (err) {
+    console.error('Error sending contact email:', err?.message || err);
+  }
+}
+
 export async function sendAdminOrderEmail(order, items = []) {
   const adminEmails = (process.env.ADMIN_ORDER_EMAILS || '6118842@gmail.com,0121718aaa@gmail.com')
     .split(',')
