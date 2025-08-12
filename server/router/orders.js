@@ -123,6 +123,25 @@ router.get('/api/admin/orders', async (_req, res) => {
   }
 });
 
+router.post('/api/admin/orders/:id/free-shipping', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rows } = await pool.query(
+      'UPDATE orders SET total = total - shipping_price, shipping_price = 0 WHERE id=$1 RETURNING *',
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
 router.post('/api/admin/orders/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
