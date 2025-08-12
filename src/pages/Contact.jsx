@@ -52,7 +52,7 @@ export default function Contact() {
           <div className="space-y-4 text-gray-700">
             <div>
               <h3 className="font-bold">כתובת:</h3>
-              <p>{contactInfo.address}</p>
+              <p>אזור מאה שערים, ירושלים</p>
             </div>
             <div>
               <h3 className="font-bold">טלפון:</h3>
@@ -68,6 +68,10 @@ export default function Contact() {
             <div>
               <h3 className="font-bold">דוא"ל:</h3>
               <p>info@talpiot-books.com‏</p>
+            </div>
+             <div>
+              <h3 className="font-bold">תודה שביקרתם באתר שלנו</h3>
+             
             </div>
           </div>
         </div>
