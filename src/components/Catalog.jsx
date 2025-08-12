@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { ShoppingCart, Plus, Eye, Filter } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { ShoppingCart, Plus, Filter } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import useBooksStore from '../store/booksStore';
 import useCartStore from '../store/cartStore';
 import useCategoriesStore from '../store/categoriesStore';
@@ -10,6 +10,7 @@ export default function Catalog() {
   const { categories, initialize: initCategories } = useCategoriesStore();
   const { addItem } = useCartStore();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const searchParams = new URLSearchParams(location.search);
   const searchQuery = searchParams.get("search") || "";
@@ -121,7 +122,8 @@ export default function Catalog() {
             {books.map((book) => (
               <div
                 key={book.id}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col transform transition-transform duration-300 hover:scale-105"
+                onClick={() => navigate(`/books/${book.id}`)}
+                className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col transform transition-transform duration-300 hover:scale-105 cursor-pointer"
               >
                 {book.image_urls?.[0] || book.image_url ? (
                   <img
@@ -171,18 +173,22 @@ export default function Catalog() {
                   </div>
                   <div className="flex justify-between items-center mt-4">
                     <button
-                      onClick={() => addItem(book)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addItem(book);
+                      }}
                       className="bg-[#7c1c2c] text-white py-2 px-4 rounded-lg hover:bg-[#66121f] flex items-center gap-2"
                     >
                       <ShoppingCart size={18} /> <span>קנייה מיידית</span>
                     </button>
                     <div className="flex gap-2 text-xl">
-                      <button className="text-gray-500 hover:text-green-600" title="הוספה לרשימת משאלות">
+                      <button
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-gray-500 hover:text-green-600"
+                        title="הוספה לרשימת משאלות"
+                      >
                         <Plus size={18} />
                       </button>
-                      <Link to={`/books/${book.id}`} className="text-gray-500 hover:text-blue-600" title="צפייה בפרטים">
-                        <Eye size={18} />
-                      </Link>
                     </div>
                   </div>
                 </div>
