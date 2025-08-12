@@ -54,10 +54,9 @@ export default function Contact() {
               <h3 className="font-bold">כתובת:</h3>
               <p>{contactInfo.address}</p>
             </div>
-
             <div>
               <h3 className="font-bold">טלפון:</h3>
-              <p>{contactInfo.phone}</p>
+              <p>050-418-1216</p>
             </div>
             
             <div>
@@ -68,7 +67,7 @@ export default function Contact() {
             
             <div>
               <h3 className="font-bold">דוא"ל:</h3>
-              <p>{contactInfo.email}</p>
+              <p>info@talpiot-books.com‏</p>
             </div>
           </div>
         </div>
