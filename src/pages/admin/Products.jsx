@@ -129,15 +129,12 @@ export default function Products() {
 
     const handleEdit = (book) => {
       setSelectedBook(book);
-      const selected = categories
-        .filter(cat => book.categories?.includes(cat.name))
-        .map(cat => cat.id);
       setFormData({
         title: book.title || '',
         author: book.author || '',
         description: book.description || '',
         price: book.price?.toString() || '',
-        categories: selected,
+        categories: [],
         image_url: book.image_urls?.[0] || book.image_url || '',
         additional_images: book.image_urls?.slice(1).join(',') || '',
         availability: book.availability || 'available',
@@ -156,6 +153,15 @@ export default function Products() {
       setImagePreview(book.image_urls?.[0] || book.image_url || '');
       setIsModalOpen(true);
     };
+
+  useEffect(() => {
+    if (selectedBook && categories.length) {
+      const selected = categories
+        .filter(cat => selectedBook.categories?.includes(cat.name))
+        .map(cat => cat.id);
+      setFormData(prev => ({ ...prev, categories: selected }));
+    }
+  }, [selectedBook, categories]);
 
   const handleDelete = async (id) => {
     if (window.confirm('האם אתה בטוח שברצונך למחוק ספר זה?')) {
