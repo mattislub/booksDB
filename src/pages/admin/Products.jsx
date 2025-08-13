@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit2, Trash2, Image } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Image, LayoutGrid, Table } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import useBooksStore from '../../store/booksStore';
 import useCategoriesStore from '../../store/categoriesStore';
@@ -20,6 +20,7 @@ export default function Products() {
   const [searchQuery, setSearchQuery] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
   const [imagePreview, setImagePreview] = useState('');
+  const [viewMode, setViewMode] = useState('grid');
 
     const [formData, setFormData] = useState({
       title: '',
@@ -213,6 +214,23 @@ export default function Products() {
           </div>
 
           <button
+            onClick={() => setViewMode(viewMode === 'grid' ? 'table' : 'grid')}
+            className="flex items-center gap-2 bg-gray-200 text-[#112a55] px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+          >
+            {viewMode === 'grid' ? (
+              <>
+                <Table size={20} />
+                תצוגת טבלה
+              </>
+            ) : (
+              <>
+                <LayoutGrid size={20} />
+                תצוגת כרטיסים
+              </>
+            )}
+          </button>
+
+          <button
             onClick={() => {
               setSelectedBook(null);
               resetForm();
@@ -233,58 +251,114 @@ export default function Products() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredBooks.map((book) => (
-          <div key={book.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="aspect-w-3 aspect-h-4 bg-gray-100">
-              {book.image_urls?.[0] || book.image_url ? (
-                <img
-                  src={book.image_urls?.[0] || book.image_url}
-                  alt={book.title}
-                  className="w-full h-48 object-contain"
-                />
-              ) : (
-                <div className="flex items-center justify-center h-48">
-                  <Image className="text-gray-400" size={48} />
-                </div>
-              )}
-            </div>
-            
-            <div className="p-4">
-              <h3 className="text-lg font-bold text-[#112a55] mb-2">{book.title}</h3>
-              <p className="text-gray-600 text-sm mb-1">{book.author}</p>
-              {book.isbn && <p className="text-gray-500 text-sm mb-2">ISBN: {book.isbn}</p>}
-              <p className="text-[#a48327] font-bold mb-2">{book.price} ₪</p>
-              <p className="text-gray-500 text-sm mb-4">במלאי: {book.stock} יחידות</p>
-              
-              <div className="flex justify-between items-center">
-                <span className={`px-3 py-1 rounded-full text-sm ${
-                  book.availability === 'available'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {book.availability === 'available' ? 'במלאי' : 'אזל מהמלאי'}
-                </span>
-                
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(book)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(book.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredBooks.map((book) => (
+            <div key={book.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div className="aspect-w-3 aspect-h-4 bg-gray-100">
+                {book.image_urls?.[0] || book.image_url ? (
+                  <img
+                    src={book.image_urls?.[0] || book.image_url}
+                    alt={book.title}
+                    className="w-full h-48 object-contain"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-48">
+                    <Image className="text-gray-400" size={48} />
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4">
+                <h3 className="text-lg font-bold text-[#112a55] mb-2">{book.title}</h3>
+                <p className="text-gray-600 text-sm mb-1">{book.author}</p>
+                {book.isbn && <p className="text-gray-500 text-sm mb-2">ISBN: {book.isbn}</p>}
+                <p className="text-[#a48327] font-bold mb-2">{book.price} ₪</p>
+                <p className="text-gray-500 text-sm mb-4">במלאי: {book.stock} יחידות</p>
+
+                <div className="flex justify-between items-center">
+                  <span className={`px-3 py-1 rounded-full text-sm ${
+                    book.availability === 'available'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {book.availability === 'available' ? 'במלאי' : 'אזל מהמלאי'}
+                  </span>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEdit(book)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                    >
+                      <Edit2 size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(book.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">תמונה</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">שם</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">מחיר</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">מלאי</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">סטטוס</th>
+                <th className="px-6 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredBooks.map(book => (
+                <tr key={book.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {book.image_urls?.[0] || book.image_url ? (
+                      <img src={book.image_urls?.[0] || book.image_url} alt={book.title} className="h-12 w-12 object-contain" />
+                    ) : (
+                      <Image className="text-gray-400" size={24} />
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap font-medium text-[#112a55]">{book.title}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">{book.price} ₪</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">{book.stock}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-3 py-1 rounded-full text-xs ${
+                      book.availability === 'available'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {book.availability === 'available' ? 'במלאי' : 'אזל'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-left">
+                    <button
+                      onClick={() => handleEdit(book)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                    >
+                      <Edit2 size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(book.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto">
