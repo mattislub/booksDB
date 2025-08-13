@@ -189,7 +189,7 @@ export default function Orders() {
                 {selectedOrder.shippingPrice > 0 && (
                   <button
                     onClick={() => {
-                      apiPost(`/api/admin/orders/${selectedOrder.id}/free-shipping`)
+                      apiPost(`/api/admin/orders/${selectedOrder.id}/free-shipping`, {})
                         .then(updated => {
                           setOrders(prev => prev.map(o =>
                             o.id === updated.id
