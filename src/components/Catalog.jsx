@@ -6,7 +6,7 @@ import useCartStore from '../store/cartStore';
 import useCategoriesStore from '../store/categoriesStore';
 
 export default function Catalog() {
-  const { books, loading, error, initialize, filterBooks } = useBooksStore();
+  const { books, loading, error, filterBooks, currentPage, totalPages } = useBooksStore();
   const { categories, initialize: initCategories } = useCategoriesStore();
   const { addItem } = useCartStore();
   const location = useLocation();
@@ -30,21 +30,17 @@ export default function Catalog() {
     initCategories();
   }, [initCategories]);
 
-  const applyFilters = () => {
-    const params = {};
+  const applyFilters = (page = 1) => {
+    const params = { page, limit: 30 };
     if (searchQuery) params.search = searchQuery;
     if (selectedCategories.length) params.categories = selectedCategories.join(',');
     if (minPrice) params.minPrice = minPrice;
     if (maxPrice) params.maxPrice = maxPrice;
-    if (Object.keys(params).length) {
-      filterBooks(params);
-    } else {
-      initialize();
-    }
+    filterBooks(params);
   };
 
   useEffect(() => {
-    applyFilters();
+    applyFilters(1);
   }, [searchQuery]);
 
   const toggleCategory = (id) => {
@@ -108,7 +104,7 @@ export default function Catalog() {
             </div>
             <div className="flex md:justify-end">
               <button
-                onClick={applyFilters}
+                onClick={() => applyFilters(1)}
                 className="w-full bg-[#7c1c2c] text-white px-6 py-2 rounded-lg hover:bg-[#66121f] transition-colors"
               >
                 סנן
@@ -195,6 +191,27 @@ export default function Catalog() {
               </div>
             ))}
           </div>
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-4 mt-8">
+              <button
+                onClick={() => applyFilters(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-[#7c1c2c] text-white rounded disabled:opacity-50"
+              >
+                הקודם
+              </button>
+              <span>
+                עמוד {currentPage} מתוך {totalPages}
+              </span>
+              <button
+                onClick={() => applyFilters(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-[#7c1c2c] text-white rounded disabled:opacity-50"
+              >
+                הבא
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
