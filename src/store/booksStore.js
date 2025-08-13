@@ -54,10 +54,11 @@ const useBooksStore = create((set) => {
 
   updateBook: async (id, updatedBook) => {
     try {
-      const data = await apiPost(`/api/books/${id}`, updatedBook);
+      const numericId = Number(id);
+      const data = await apiPost(`/api/books/${numericId}`, updatedBook);
       set(state => ({
         books: state.books.map(book =>
-          book.id === id ? data : book
+          Number(book.id) === numericId ? data : book
         )
       }));
       return { success: true, data };
@@ -69,9 +70,10 @@ const useBooksStore = create((set) => {
 
   deleteBook: async (id) => {
     try {
-      await apiPost(`/api/books/${id}/delete`, {});
+      const numericId = Number(id);
+      await apiPost(`/api/books/${numericId}/delete`, {});
       set(state => ({
-        books: state.books.filter(book => book.id !== id)
+        books: state.books.filter(book => Number(book.id) !== numericId)
       }));
       return { success: true };
     } catch (error) {
