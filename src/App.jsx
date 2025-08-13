@@ -16,6 +16,7 @@ import Terms from "./pages/Terms";
 import Shipping from "./pages/Shipping";
 import Returns from "./pages/Returns";
 import FAQ from "./pages/FAQ";
+import Privacy from "./pages/Privacy";
 import Dashboard from "./pages/admin/Dashboard";
 import Orders from "./pages/admin/Orders";
 import Products from "./pages/admin/Products";
@@ -52,6 +53,7 @@ function App() {
             <Route path="/personal/*" element={<PersonalArea />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route path="/shipping" element={<Shipping />} />
             <Route path="/returns" element={<Returns />} />
             <Route path="/faq" element={<FAQ />} />
@@ -108,6 +110,9 @@ function App() {
                 <ul className="space-y-3 text-center">
                   <li className="hover:text-[#f9e79f] transition-colors">
                     <Link to="/terms">תקנון האתר</Link>
+                  </li>
+                  <li className="hover:text-[#f9e79f] transition-colors">
+                    <Link to="/privacy">מדיניות פרטיות</Link>
                   </li>
                   <li className="hover:text-[#f9e79f] transition-colors">
                     <Link to="/shipping">מדיניות משלוחים</Link>
