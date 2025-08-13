@@ -1,12 +1,16 @@
 import { create } from 'zustand';
 import { apiGet, apiPost } from '../lib/apiClient';
 
-const useAuthStore = create((set) => ({
+const useAuthStore = create((set, get) => ({
   user: null,
   loading: true,
   error: null,
-  
+  hasInitialized: false,
+
   initialize: async () => {
+    if (get().hasInitialized) return;
+    set({ hasInitialized: true });
+
     try {
       console.log('Initializing auth store...');
 
