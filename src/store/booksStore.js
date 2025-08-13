@@ -6,8 +6,12 @@ const useBooksStore = create((set) => {
     try {
       set({ loading: true, error: null });
       const query = new URLSearchParams(params).toString();
-      const books = await apiGet(`/api/books${query ? `?${query}` : ''}`);
-      set({ books, loading: false });
+      const data = await apiGet(`/api/books${query ? `?${query}` : ''}`);
+      if (Array.isArray(data)) {
+        set({ books: data, currentPage: 1, totalPages: 1, loading: false });
+      } else {
+        set({ books: data.books, currentPage: data.page, totalPages: data.totalPages, loading: false });
+      }
     } catch (error) {
       console.error('Error loading books:', error);
       set({ error: error.message, loading: false });
@@ -18,9 +22,11 @@ const useBooksStore = create((set) => {
     books: [],
     loading: true,
     error: null,
+    currentPage: 1,
+    totalPages: 1,
 
-    initialize: () => fetchBooks(),
-    searchBooks: (query) => fetchBooks({ search: query }),
+    initialize: (params = {}) => fetchBooks(params),
+    searchBooks: (query, params = {}) => fetchBooks({ search: query, ...params }),
     filterBooks: (filters) => fetchBooks(filters),
 
     getNewArrivals: async () => {

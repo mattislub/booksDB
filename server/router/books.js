@@ -6,9 +6,20 @@ const router = express.Router();
 
 router.get('/api/books', async (req, res) => {
   try {
-    const { search, filter, categories, minPrice, maxPrice } = req.query;
-    let query = `
-      SELECT b.*, COALESCE(ARRAY_REMOVE(array_agg(c.name), NULL), '{}') AS categories
+    const { search, filter, categories, minPrice, maxPrice, page, limit } = req.query;
+
+    // Pagination handling (limit capped at 30)
+    let limitNum = parseInt(limit, 10);
+    if (isNaN(limitNum)) {
+      limitNum = page ? 30 : null;
+    }
+    if (limitNum) {
+      limitNum = Math.min(limitNum, 30);
+    }
+    const pageNum = parseInt(page, 10) || 1;
+    const offset = limitNum ? (pageNum - 1) * limitNum : 0;
+
+    let baseQuery = `
       FROM books b
       LEFT JOIN book_categories bc ON b.id = bc.book_id
       LEFT JOIN categories c ON bc.category_id = c.id
@@ -45,14 +56,41 @@ router.get('/api/books', async (req, res) => {
       conditions.push(`b.price <= $${params.length}`);
     }
 
+    let whereClause = '';
     if (conditions.length) {
-      query += ' WHERE ' + conditions.join(' AND ');
+      whereClause = ' WHERE ' + conditions.join(' AND ');
     }
 
-    query += ' GROUP BY b.id ORDER BY b.created_at DESC';
-    const { rows } = await pool.query(query, params);
+    let query = `
+      SELECT b.*, COALESCE(ARRAY_REMOVE(array_agg(c.name), NULL), '{}') AS categories
+      ${baseQuery}
+      ${whereClause}
+      GROUP BY b.id
+      ORDER BY b.created_at DESC
+    `;
+
+    let queryParams = [...params];
+    if (limitNum) {
+      query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+      queryParams = [...params, limitNum, offset];
+    }
+
+    const { rows } = await pool.query(query, queryParams);
     const result = rows.map(r => ({ ...r, category: r.categories[0] || null }));
-    res.json(result);
+
+    if (limitNum) {
+      let countQuery = `
+        SELECT COUNT(DISTINCT b.id) AS total
+        ${baseQuery}
+        ${whereClause}
+      `;
+      const { rows: countRows } = await pool.query(countQuery, params);
+      const total = parseInt(countRows[0].total, 10);
+      const totalPages = Math.max(1, Math.ceil(total / limitNum));
+      res.json({ books: result, page: pageNum, totalPages });
+    } else {
+      res.json(result);
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Database error' });
