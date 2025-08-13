@@ -26,6 +26,84 @@ export default function BookDetails() {
     fetchBook();
   }, [id]);
 
+  useEffect(() => {
+    if (!book) return;
+
+    const previousTitle = document.title;
+    const descriptionTag =
+      document.querySelector('meta[name="description"]') ||
+      (() => {
+        const tag = document.createElement("meta");
+        tag.name = "description";
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousDescription = descriptionTag.getAttribute("content");
+
+    const keywordsTag =
+      document.querySelector('meta[name="keywords"]') ||
+      (() => {
+        const tag = document.createElement("meta");
+        tag.name = "keywords";
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousKeywords = keywordsTag.getAttribute("content");
+
+    const ogTitleTag =
+      document.querySelector('meta[property="og:title"]') ||
+      (() => {
+        const tag = document.createElement("meta");
+        tag.setAttribute("property", "og:title");
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousOgTitle = ogTitleTag.getAttribute("content");
+
+    const ogDescriptionTag =
+      document.querySelector('meta[property="og:description"]') ||
+      (() => {
+        const tag = document.createElement("meta");
+        tag.setAttribute("property", "og:description");
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousOgDescription = ogDescriptionTag.getAttribute("content");
+
+    const category = book.category || book.categories?.[0] || "";
+    document.title = `${book.title}${category ? " - " + category : ""}`;
+
+    descriptionTag.setAttribute(
+      "content",
+      `${book.title}${category ? " - " + category : ""}`
+    );
+
+    const keywords = [book.title, ...(book.categories || [])].filter(Boolean);
+    keywordsTag.setAttribute("content", keywords.join(", "));
+
+    ogTitleTag.setAttribute("content", book.title);
+    ogDescriptionTag.setAttribute(
+      "content",
+      `${book.title}${category ? " - " + category : ""}`
+    );
+
+    return () => {
+      document.title = previousTitle;
+      if (previousDescription !== null) {
+        descriptionTag.setAttribute("content", previousDescription);
+      }
+      if (previousKeywords !== null) {
+        keywordsTag.setAttribute("content", previousKeywords);
+      }
+      if (previousOgTitle !== null) {
+        ogTitleTag.setAttribute("content", previousOgTitle);
+      }
+      if (previousOgDescription !== null) {
+        ogDescriptionTag.setAttribute("content", previousOgDescription);
+      }
+    };
+  }, [book]);
+
   if (loading) return <div className="text-center py-8">טוען...</div>;
   if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
   if (!book) return <div className="text-center py-8">הספר לא נמצא</div>;
