@@ -65,22 +65,28 @@ app.get('*', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-async function ensureImageUrlsColumn() {
-  try {
-    await pool.query(
-      'ALTER TABLE books ADD COLUMN IF NOT EXISTS image_urls TEXT[]'
-    );
-  } catch (err) {
-    // Ignore if the books table does not exist yet or we lack privileges
-    if (err.code !== '42P01' && err.code !== '42501') {
-      throw err;
+async function ensureBookColumns() {
+  const queries = [
+    "ALTER TABLE books ADD COLUMN IF NOT EXISTS image_urls TEXT[]",
+    "ALTER TABLE books ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP",
+    "ALTER TABLE books ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP",
+  ];
+
+  for (const sql of queries) {
+    try {
+      await pool.query(sql);
+    } catch (err) {
+      // Ignore if the books table does not exist yet or we lack privileges
+      if (err.code !== '42P01' && err.code !== '42501') {
+        throw err;
+      }
     }
   }
 }
 
 async function start() {
   try {
-    await ensureImageUrlsColumn();
+    await ensureBookColumns();
 
     // Error handler
     app.use((err, req, res, next) => {
