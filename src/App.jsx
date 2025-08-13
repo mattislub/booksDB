@@ -22,6 +22,7 @@ import Products from "./pages/admin/Products";
 import Reports from "./pages/admin/Reports";
 import AddBook from "./pages/admin/AddBook";
 import ShoppingCart from "./components/ShoppingCart";
+import CookieConsent from "./components/CookieConsent";
 import useAuthStore from "./store/authStore";
 import useCartStore from "./store/cartStore";
 import { Phone, Mail, Clock } from "lucide-react";
@@ -128,6 +129,7 @@ function App() {
           </div>
         </footer>
 
+        <CookieConsent />
         <ShoppingCart />
       </div>
     </Router>
