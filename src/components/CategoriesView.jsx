@@ -5,6 +5,66 @@ import { Search, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 function CategoryBooks({ books, categoryName, onClose }) {
+  useEffect(() => {
+    const previousTitle = document.title;
+    const descriptionTag =
+      document.querySelector('meta[name="description"]') ||
+      (() => {
+        const tag = document.createElement('meta');
+        tag.name = 'description';
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousDescription = descriptionTag.getAttribute('content');
+
+    const keywordsTag =
+      document.querySelector('meta[name="keywords"]') ||
+      (() => {
+        const tag = document.createElement('meta');
+        tag.name = 'keywords';
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousKeywords = keywordsTag.getAttribute('content');
+
+    const ogTitleTag =
+      document.querySelector('meta[property="og:title"]') ||
+      (() => {
+        const tag = document.createElement('meta');
+        tag.setAttribute('property', 'og:title');
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousOgTitle = ogTitleTag.getAttribute('content');
+
+    const ogDescriptionTag =
+      document.querySelector('meta[property="og:description"]') ||
+      (() => {
+        const tag = document.createElement('meta');
+        tag.setAttribute('property', 'og:description');
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousOgDescription = ogDescriptionTag.getAttribute('content');
+
+    const keywords = [categoryName, ...books.map(b => b.title)].filter(Boolean).join(', ');
+    const desc = `ספרי קודש תלפיות - ספרים בקטגוריית ${categoryName}`;
+
+    document.title = `${categoryName} - ספרי קודש תלפיות`;
+    descriptionTag.setAttribute('content', desc);
+    keywordsTag.setAttribute('content', keywords);
+    ogTitleTag.setAttribute('content', `${categoryName} - ספרי קודש תלפיות`);
+    ogDescriptionTag.setAttribute('content', desc);
+
+    return () => {
+      document.title = previousTitle;
+      if (previousDescription !== null) descriptionTag.setAttribute('content', previousDescription);
+      if (previousKeywords !== null) keywordsTag.setAttribute('content', previousKeywords);
+      if (previousOgTitle !== null) ogTitleTag.setAttribute('content', previousOgTitle);
+      if (previousOgDescription !== null) ogDescriptionTag.setAttribute('content', previousOgDescription);
+    };
+  }, [categoryName, books]);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -58,6 +118,66 @@ export default function CategoriesView() {
     initCategories();
     initBooks();
   }, [initCategories, initBooks]);
+
+  useEffect(() => {
+    const previousTitle = document.title;
+    const descriptionTag =
+      document.querySelector('meta[name="description"]') ||
+      (() => {
+        const tag = document.createElement('meta');
+        tag.name = 'description';
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousDescription = descriptionTag.getAttribute('content');
+
+    const keywordsTag =
+      document.querySelector('meta[name="keywords"]') ||
+      (() => {
+        const tag = document.createElement('meta');
+        tag.name = 'keywords';
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousKeywords = keywordsTag.getAttribute('content');
+
+    const ogTitleTag =
+      document.querySelector('meta[property="og:title"]') ||
+      (() => {
+        const tag = document.createElement('meta');
+        tag.setAttribute('property', 'og:title');
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousOgTitle = ogTitleTag.getAttribute('content');
+
+    const ogDescriptionTag =
+      document.querySelector('meta[property="og:description"]') ||
+      (() => {
+        const tag = document.createElement('meta');
+        tag.setAttribute('property', 'og:description');
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousOgDescription = ogDescriptionTag.getAttribute('content');
+
+    const keywords = categories.map(c => c.name).join(', ');
+    const desc = 'מצא ספרים לפי קטגוריה בספרי קודש תלפיות';
+
+    document.title = 'קטגוריות ספרים - ספרי קודש תלפיות';
+    descriptionTag.setAttribute('content', desc);
+    keywordsTag.setAttribute('content', keywords);
+    ogTitleTag.setAttribute('content', 'קטגוריות ספרים - ספרי קודש תלפיות');
+    ogDescriptionTag.setAttribute('content', desc);
+
+    return () => {
+      document.title = previousTitle;
+      if (previousDescription !== null) descriptionTag.setAttribute('content', previousDescription);
+      if (previousKeywords !== null) keywordsTag.setAttribute('content', previousKeywords);
+      if (previousOgTitle !== null) ogTitleTag.setAttribute('content', previousOgTitle);
+      if (previousOgDescription !== null) ogDescriptionTag.setAttribute('content', previousOgDescription);
+    };
+  }, [categories]);
 
   useEffect(() => {
     if (searchQuery) {
