@@ -393,7 +393,7 @@ export default function Products() {
             </h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-gray-700 mb-1">שם הספר *</label>
                   <input
@@ -661,7 +661,7 @@ export default function Products() {
                 </select>
               </div>
 
-              <div className="flex justify-end gap-4 mt-6">
+              <div className="flex justify-center gap-4 mt-6">
                 <button
                   type="button"
                   onClick={() => {
