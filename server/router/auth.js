@@ -16,6 +16,13 @@ function parseCookies(header = '') {
   return cookies;
 }
 
+// Ensure cookies are sent cross-site by default
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: 'None',
+  secure: true,
+};
+
 export async function getUserFromRequest(req) {
   const cookies = parseCookies(req.headers.cookie || '');
   const sessionId = cookies.session_id;
@@ -120,7 +127,7 @@ router.post('/api/auth/register', async (req, res) => {
 
     const sid = crypto.randomUUID();
     sessions[sid] = user.id;
-    res.cookie('session_id', sid, { httpOnly: true });
+    res.cookie('session_id', sid, cookieOptions);
     res.json({ user });
   } catch (err) {
     console.error(err);
@@ -169,7 +176,7 @@ router.post('/api/auth/login', async (req, res) => {
     if (!match) return res.status(401).json({ error: 'Invalid credentials' });
     const sid = crypto.randomUUID();
     sessions[sid] = user.id;
-    res.cookie('session_id', sid, { httpOnly: true });
+    res.cookie('session_id', sid, cookieOptions);
     res.json({ user: { id: user.id, email: user.email } });
   } catch (err) {
     console.error(err);
@@ -226,7 +233,7 @@ router.post('/api/auth/logout', (req, res) => {
   const cookies = parseCookies(req.headers.cookie || '');
   const sid = cookies.session_id;
   delete sessions[sid];
-  res.clearCookie('session_id');
+  res.clearCookie('session_id', cookieOptions);
   res.json({ success: true });
 });
 
