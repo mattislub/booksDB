@@ -11,6 +11,7 @@ export default function BookDetails() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const fetchBook = async () => {
       try {
         setLoading(true);
