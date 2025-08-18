@@ -202,6 +202,10 @@ export default function Products() {
     book.isbn?.includes(searchQuery)
   );
 
+  const totalBooks = books.length;
+  const inStockCount = books.filter(book => book.availability === 'available').length;
+  const outOfStockCount = books.filter(book => book.availability === 'out-of-stock').length;
+
   return (
     <div className="max-w-7xl mx-auto p-8">
       <div className="flex justify-between items-center mb-8">
@@ -254,6 +258,21 @@ export default function Products() {
           >
             הוספה חכמה
           </Link>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="bg-white rounded-xl shadow p-4 text-center">
+          <p className="text-sm text-gray-500">סה"כ מוצרים</p>
+          <p className="text-2xl font-bold text-[#112a55]">{totalBooks}</p>
+        </div>
+        <div className="bg-white rounded-xl shadow p-4 text-center">
+          <p className="text-sm text-gray-500">במלאי</p>
+          <p className="text-2xl font-bold text-green-600">{inStockCount}</p>
+        </div>
+        <div className="bg-white rounded-xl shadow p-4 text-center">
+          <p className="text-sm text-gray-500">אזל מהמלאי</p>
+          <p className="text-2xl font-bold text-red-600">{outOfStockCount}</p>
         </div>
       </div>
 
