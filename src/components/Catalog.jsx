@@ -30,6 +30,81 @@ export default function Catalog() {
     initCategories();
   }, [initCategories]);
 
+  useEffect(() => {
+    const categoryNames = selectedCategories
+      .map(id => categories.find(c => c.id === id)?.name)
+      .filter(Boolean);
+
+    const previousTitle = document.title;
+    const descriptionTag =
+      document.querySelector('meta[name="description"]') ||
+      (() => {
+        const tag = document.createElement('meta');
+        tag.name = 'description';
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousDescription = descriptionTag.getAttribute('content');
+
+    const keywordsTag =
+      document.querySelector('meta[name="keywords"]') ||
+      (() => {
+        const tag = document.createElement('meta');
+        tag.name = 'keywords';
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousKeywords = keywordsTag.getAttribute('content');
+
+    const ogTitleTag =
+      document.querySelector('meta[property="og:title"]') ||
+      (() => {
+        const tag = document.createElement('meta');
+        tag.setAttribute('property', 'og:title');
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousOgTitle = ogTitleTag.getAttribute('content');
+
+    const ogDescriptionTag =
+      document.querySelector('meta[property="og:description"]') ||
+      (() => {
+        const tag = document.createElement('meta');
+        tag.setAttribute('property', 'og:description');
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousOgDescription = ogDescriptionTag.getAttribute('content');
+
+    const baseTitle = 'קטלוג הספרים';
+    const baseDescription = 'קטלוג הספרים של ספרי קודש תלפיות';
+
+    if (categoryNames.length) {
+      const joined = categoryNames.join(', ');
+      const desc = `מבחר ספרים בקטגוריות ${joined}`;
+      document.title = `${baseTitle} - ${joined}`;
+      descriptionTag.setAttribute('content', desc);
+      keywordsTag.setAttribute('content', joined);
+      ogTitleTag.setAttribute('content', `${baseTitle} - ${joined}`);
+      ogDescriptionTag.setAttribute('content', desc);
+    } else {
+      const allKeywords = categories.map(c => c.name).join(', ');
+      document.title = baseTitle;
+      descriptionTag.setAttribute('content', baseDescription);
+      keywordsTag.setAttribute('content', allKeywords);
+      ogTitleTag.setAttribute('content', baseTitle);
+      ogDescriptionTag.setAttribute('content', baseDescription);
+    }
+
+    return () => {
+      document.title = previousTitle;
+      if (previousDescription !== null) descriptionTag.setAttribute('content', previousDescription);
+      if (previousKeywords !== null) keywordsTag.setAttribute('content', previousKeywords);
+      if (previousOgTitle !== null) ogTitleTag.setAttribute('content', previousOgTitle);
+      if (previousOgDescription !== null) ogDescriptionTag.setAttribute('content', previousOgDescription);
+    };
+  }, [selectedCategories, categories]);
+
   const applyFilters = (page = 1) => {
     const params = { page, limit: 30 };
     if (searchQuery) params.search = searchQuery;
