@@ -71,6 +71,46 @@ export default function BookDetails() {
       })();
     const previousOgDescription = ogDescriptionTag.getAttribute("content");
 
+    const ogImageTag =
+      document.querySelector('meta[property="og:image"]') ||
+      (() => {
+        const tag = document.createElement("meta");
+        tag.setAttribute("property", "og:image");
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousOgImage = ogImageTag.getAttribute("content");
+
+    const priceTag =
+      document.querySelector('meta[property="product:price:amount"]') ||
+      (() => {
+        const tag = document.createElement("meta");
+        tag.setAttribute("property", "product:price:amount");
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousPrice = priceTag.getAttribute("content");
+
+    const currencyTag =
+      document.querySelector('meta[property="product:price:currency"]') ||
+      (() => {
+        const tag = document.createElement("meta");
+        tag.setAttribute("property", "product:price:currency");
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousCurrency = currencyTag.getAttribute("content");
+
+    const availabilityTag =
+      document.querySelector('meta[property="product:availability"]') ||
+      (() => {
+        const tag = document.createElement("meta");
+        tag.setAttribute("property", "product:availability");
+        document.head.appendChild(tag);
+        return tag;
+      })();
+    const previousAvailability = availabilityTag.getAttribute("content");
+
     const category = book.category || book.categories?.[0] || "";
     document.title = `${book.title}${category ? " - " + category : ""}`;
 
@@ -88,6 +128,19 @@ export default function BookDetails() {
       `${book.title}${category ? " - " + category : ""}`
     );
 
+    const imageUrl = book.image_urls?.[0] || book.image_url;
+    if (imageUrl) {
+      ogImageTag.setAttribute("content", `${API_BASE}${imageUrl}`);
+    }
+    if (book.final_price) {
+      priceTag.setAttribute("content", book.final_price);
+      currencyTag.setAttribute("content", "ILS");
+    }
+    availabilityTag.setAttribute(
+      "content",
+      book.availability === "available" ? "in stock" : "out of stock"
+    );
+
     return () => {
       document.title = previousTitle;
       if (previousDescription !== null) {
@@ -101,6 +154,18 @@ export default function BookDetails() {
       }
       if (previousOgDescription !== null) {
         ogDescriptionTag.setAttribute("content", previousOgDescription);
+      }
+      if (previousOgImage !== null) {
+        ogImageTag.setAttribute("content", previousOgImage);
+      }
+      if (previousPrice !== null) {
+        priceTag.setAttribute("content", previousPrice);
+      }
+      if (previousCurrency !== null) {
+        currencyTag.setAttribute("content", previousCurrency);
+      }
+      if (previousAvailability !== null) {
+        availabilityTag.setAttribute("content", previousAvailability);
       }
     };
   }, [book]);
