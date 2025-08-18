@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ShoppingCart, Package, Clock, Shield } from "lucide-react";
 import useBooksStore from '../store/booksStore';
@@ -9,6 +9,10 @@ export default function BookDetails() {
   const { books, loading, error } = useBooksStore();
   const { addItem } = useCartStore();
   const book = books.find(b => b.id === parseInt(id));
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [id]);
 
   const relatedBooks = useMemo(() => {
     if (!book) return [];
