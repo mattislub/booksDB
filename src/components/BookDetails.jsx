@@ -1,25 +1,58 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ShoppingCart, Package, Clock, Shield } from "lucide-react";
-import useBooksStore from '../store/booksStore';
+import { ShoppingCart, Clock, Shield } from "lucide-react";
 import useCartStore from '../store/cartStore';
+import { API_URL } from '../lib/apiClient';
 
 export default function BookDetails() {
   const { id } = useParams();
-  const { books, loading, error } = useBooksStore();
   const { addItem } = useCartStore();
-  const book = books.find(b => b.id === parseInt(id));
+  const [book, setBook] = useState(null);
+  const [relatedBooks, setRelatedBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    const fetchBook = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_URL}/api/books/${id}`, {
+          credentials: 'omit'
+        });
+        if (!res.ok) throw new Error('Failed to load book');
+        const data = await res.json();
+        setBook(data);
+      } catch (err) {
+        console.error('Error fetching book:', err);
+        setError('שגיאה בטעינת הספר');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBook();
   }, [id]);
 
-  const relatedBooks = useMemo(() => {
-    if (!book) return [];
-    return books
-      .filter(b => b.id !== book.id && b.categories?.some(cat => book.categories?.includes(cat)))
-      .slice(0, 4);
-  }, [books, book]);
+  useEffect(() => {
+    const fetchRelated = async () => {
+      if (!book) return;
+      try {
+        const res = await fetch(`${API_URL}/api/books`, {
+          credentials: 'omit'
+        });
+        if (!res.ok) throw new Error('Failed to load related books');
+        const data = await res.json();
+        const list = Array.isArray(data) ? data : data.books;
+        const related = list
+          .filter(b => b.id !== book.id && b.categories?.some(cat => book.categories?.includes(cat)))
+          .slice(0, 4);
+        setRelatedBooks(related);
+      } catch (err) {
+        console.error('Error fetching related books:', err);
+      }
+    };
+    fetchRelated();
+  }, [book]);
 
   if (loading) return <div className="text-center py-8">טוען...</div>;
   if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
