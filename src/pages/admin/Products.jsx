@@ -21,28 +21,28 @@ export default function Products() {
   const [validationErrors, setValidationErrors] = useState({});
   const [imagePreview, setImagePreview] = useState('');
   const [viewMode, setViewMode] = useState('grid');
+  const [additionalImages, setAdditionalImages] = useState([]);
 
-    const [formData, setFormData] = useState({
-      title: '',
-      author: '',
-      description: '',
-      price: '',
-      categories: [],
-      image_url: '',
-      additional_images: '',
-      availability: 'available',
-      isbn: '',
-      publisher: '',
-      publication_year: '',
-      pages: '',
-      language: 'hebrew',
-      binding: 'hardcover',
-      dimensions: '',
-      weight: '',
-      stock: '1',
-      is_new_arrival: false,
-      is_new_in_market: false
-    });
+  const [formData, setFormData] = useState({
+    title: '',
+    author: '',
+    description: '',
+    price: '',
+    categories: [],
+    image_url: '',
+    availability: 'available',
+    isbn: '',
+    publisher: '',
+    publication_year: '',
+    pages: '',
+    language: 'hebrew',
+    binding: 'hardcover',
+    dimensions: '',
+    weight: '',
+    stock: '1',
+    is_new_arrival: false,
+    is_new_in_market: false
+  });
 
   useEffect(() => {
     initBooks();
@@ -70,13 +70,7 @@ export default function Products() {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const imageUrls = [
-      formData.image_url,
-      ...formData.additional_images
-        .split(',')
-        .map(s => s.trim())
-        .filter(Boolean)
-    ].filter(Boolean);
+    const imageUrls = [formData.image_url, ...additionalImages].filter(Boolean);
 
     const bookData = {
       ...formData,
@@ -87,8 +81,6 @@ export default function Products() {
       pages: formData.pages ? Number(formData.pages) : null,
       publication_year: formData.publication_year ? Number(formData.publication_year) : null
     };
-
-    delete bookData.additional_images;
 
     if (selectedBook) {
       updateBook(selectedBook.id, bookData);
@@ -109,7 +101,6 @@ export default function Products() {
         price: '',
         categories: [],
         image_url: '',
-        additional_images: '',
         availability: 'available',
         isbn: '',
         publisher: '',
@@ -125,6 +116,7 @@ export default function Products() {
       });
     setImagePreview('');
     setValidationErrors({});
+    setAdditionalImages([]);
   };
 
     const handleEdit = (book) => {
@@ -136,7 +128,6 @@ export default function Products() {
         price: book.price?.toString() || '',
         categories: [],
         image_url: book.image_urls?.[0] || book.image_url || '',
-        additional_images: book.image_urls?.slice(1).join(',') || '',
         availability: book.availability || 'available',
         isbn: book.isbn || '',
         publisher: book.publisher || '',
@@ -150,6 +141,7 @@ export default function Products() {
         is_new_arrival: book.is_new_arrival || false,
         is_new_in_market: book.is_new_in_market || false
       });
+      setAdditionalImages(book.image_urls?.slice(1) || []);
       setImagePreview(book.image_urls?.[0] || book.image_url || '');
       setIsModalOpen(true);
     };
@@ -190,6 +182,25 @@ export default function Products() {
       const url = `${API_URL}${res.url}`;
       setFormData(prev => ({ ...prev, image_url: url }));
       setImagePreview(url);
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      alert('שגיאה בהעלאת התמונה');
+    }
+  };
+
+  const handleAdditionalImagesUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    try {
+      const urls = [];
+      for (const file of files) {
+        const compressed = await compressImage(file, 0.3);
+        const form = new FormData();
+        form.append('image', compressed);
+        const res = await apiPostFormData('/api/upload-image', form);
+        urls.push(`${API_URL}${res.url}`);
+      }
+      setAdditionalImages(prev => [...prev, ...urls]);
     } catch (err) {
       console.error('Error uploading image:', err);
       alert('שגיאה בהעלאת התמונה');
@@ -639,14 +650,26 @@ export default function Products() {
               </div>
 
               <div>
-                <label className="block text-gray-700 mb-1">תמונות נוספות (מופרדות בפסיק)</label>
+                <label className="block text-gray-700 mb-1">תמונות נוספות</label>
                 <input
-                  type="text"
-                  value={formData.additional_images}
-                  onChange={(e) => setFormData({ ...formData, additional_images: e.target.value })}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleAdditionalImagesUpload}
                   className="w-full border rounded-lg p-2"
-                  placeholder="קישורים נוספים"
                 />
+                {additionalImages.length > 0 && (
+                  <div className="flex gap-2 flex-wrap mt-2">
+                    {additionalImages.map((url, idx) => (
+                      <img
+                        key={idx}
+                        src={url}
+                        alt={`תמונה ${idx + 1}`}
+                        className="w-16 h-16 object-contain border rounded"
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>

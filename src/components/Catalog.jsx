@@ -209,6 +209,18 @@ export default function Catalog() {
                     className="w-full h-[250px] object-contain bg-white rounded-t-2xl"
                   />
                 )}
+                {book.image_urls?.length > 1 && (
+                  <div className="flex gap-2 p-2 justify-center bg-white">
+                    {book.image_urls.slice(1).map((url, idx) => (
+                      <img
+                        key={idx}
+                        src={url}
+                        alt={`${book.title} ${idx + 2}`}
+                        className="w-16 h-16 object-contain border rounded"
+                      />
+                    ))}
+                  </div>
+                )}
 
                 <div className="p-4 flex-1 flex flex-col justify-between">
                   <div>
