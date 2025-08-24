@@ -19,6 +19,7 @@ export default function AddBook() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [newCategory, setNewCategory] = useState('');
   const [zipUrls, setZipUrls] = useState([]);
+  const [additionalImageUrls, setAdditionalImageUrls] = useState([]);
 
   const buildCategoryTree = (cats) => {
     const map = {};
@@ -106,7 +107,6 @@ export default function AddBook() {
     description: '',
     price: '',
     image_url: '',
-    additional_images: '',
     availability: 'available',
     isbn: '',
     publisher: '',
@@ -119,7 +119,7 @@ export default function AddBook() {
     is_new_in_market: false
   });
 
-  const handleImageChange = async (e) => {
+const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -139,6 +139,33 @@ export default function AddBook() {
         const selectedFile = new File([blob], 'image.jpg', { type: blob.type });
         await processSelectedFile(selectedFile, fullUrl);
       }
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      alert('שגיאה בהעלאת התמונה');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdditionalImagesUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setLoading(true);
+    try {
+      const urls = [];
+      for (const file of files) {
+        let processed = file;
+        try {
+          processed = await compressImage(file, 0.3);
+        } catch (err) {
+          console.error('Error compressing image:', err);
+        }
+        const formData = new FormData();
+        formData.append('image', processed);
+        const res = await apiPostFormData('/api/upload-image', formData);
+        urls.push(`${API_URL}${res.url}`);
+      }
+      setAdditionalImageUrls(prev => [...prev, ...urls]);
     } catch (err) {
       console.error('Error uploading image:', err);
       alert('שגיאה בהעלאת התמונה');
@@ -252,13 +279,7 @@ export default function AddBook() {
         imageUrl = `${API_URL}${uploadRes.url}`;
       }
 
-      const imageUrls = [
-        imageUrl,
-        ...bookData.additional_images
-          .split(',')
-          .map(s => s.trim())
-          .filter(Boolean)
-      ].filter(Boolean);
+      const imageUrls = [imageUrl, ...additionalImageUrls].filter(Boolean);
 
       const finalBookData = {
         ...bookData,
@@ -280,7 +301,6 @@ export default function AddBook() {
         description: '',
         price: '',
         image_url: '',
-        additional_images: '',
         availability: 'available',
         isbn: '',
         publisher: '',
@@ -296,6 +316,7 @@ export default function AddBook() {
       setImageFile(null);
       setImagePreview('');
       setZipUrls([]);
+      setAdditionalImageUrls([]);
       setStep(1);
     } catch (error) {
       console.error('Error adding book:', error);
@@ -417,13 +438,26 @@ export default function AddBook() {
             )}
 
             <div>
-              <label className="block text-gray-700 mb-1">קישורי תמונות נוספים (מופרדים בפסיק)</label>
+              <label className="block text-gray-700 mb-1">תמונות נוספות</label>
               <input
-                type="text"
-                value={bookData.additional_images}
-                onChange={(e) => setBookData({ ...bookData, additional_images: e.target.value })}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleAdditionalImagesUpload}
                 className="w-full border rounded-lg p-2"
               />
+              {additionalImageUrls.length > 0 && (
+                <div className="flex gap-2 flex-wrap mt-2">
+                  {additionalImageUrls.map((url, idx) => (
+                    <img
+                      key={idx}
+                      src={url}
+                      alt={`תמונה ${idx + 1}`}
+                      className="w-16 h-16 object-contain border rounded"
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
