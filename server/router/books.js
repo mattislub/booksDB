@@ -159,6 +159,8 @@ router.post('/api/books', async (req, res) => {
       ? [image_url]
       : [];
 
+    console.log('Saving book with image URLs', imageUrls, 'raw image_url', image_url, 'raw image_urls', image_urls);
+
     const sanitized = {
       title,
       author: author || null,
@@ -183,6 +185,8 @@ router.post('/api/books', async (req, res) => {
        WHERE table_name='books' AND column_name='image_urls'`
     );
     const hasImageUrls = col.length > 0;
+
+    console.log('image_urls column present?', hasImageUrls);
 
     const columns = [
       'title',
@@ -318,6 +322,8 @@ router.post('/api/books/:id', async (req, res) => {
       ? [image_url]
       : [];
 
+    console.log('Updating book', id, 'with image URLs', imageUrls, 'raw image_url', image_url, 'raw image_urls', image_urls);
+
     const sanitized = {
       title,
       author: author || null,
@@ -343,6 +349,8 @@ router.post('/api/books/:id', async (req, res) => {
        WHERE table_name='books' AND column_name='image_urls'`
     );
     const hasImageUrls = col.length > 0;
+
+    console.log('image_urls column present?', hasImageUrls);
 
     const sets = [
       'title=$1',
