@@ -9,6 +9,7 @@ export default function BookDetails() {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -26,6 +27,10 @@ export default function BookDetails() {
     };
     fetchBook();
   }, [id]);
+
+  useEffect(() => {
+    setSelectedImageIndex(0);
+  }, [book]);
 
   useEffect(() => {
     if (!book) return;
@@ -109,18 +114,43 @@ export default function BookDetails() {
   if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
   if (!book) return <div className="text-center py-8">הספר לא נמצא</div>;
 
+  const images = book.image_urls?.length
+    ? book.image_urls
+    : book.image_url
+    ? [book.image_url]
+    : [];
+
   return (
     <div className="max-w-4xl mx-auto p-4 text-right">
       <Link to="/" className="text-blue-600 hover:underline mb-4 inline-block">
         ← חזור לקטלוג
       </Link>
       <div className="bg-white shadow rounded-lg p-6 flex flex-col md:flex-row gap-6">
-        {book.image_urls?.[0] || book.image_url ? (
-          <img
-            src={`${API_BASE}${book.image_urls?.[0] || book.image_url}`}
-            alt={book.title}
-            className="w-full md:w-1/3 h-64 object-contain rounded"
-          />
+        {images.length > 0 ? (
+          <div className="w-full md:w-1/3 flex flex-col items-center">
+            <img
+              src={`${API_BASE}${images[selectedImageIndex]}`}
+              alt={book.title}
+              className="w-full h-64 object-contain rounded"
+            />
+            {images.length > 1 && (
+              <div className="flex mt-4 space-x-2 overflow-x-auto">
+                {images.map((url, idx) => (
+                  <img
+                    key={idx}
+                    src={`${API_BASE}${url}`}
+                    alt={`${book.title} ${idx + 1}`}
+                    className={`w-16 h-16 object-contain rounded cursor-pointer border ${
+                      idx === selectedImageIndex
+                        ? "border-[#a48327]"
+                        : "border-transparent"
+                    }`}
+                    onClick={() => setSelectedImageIndex(idx)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         ) : (
           <div className="w-full md:w-1/3 h-64 bg-gray-200 rounded flex items-center justify-center">
             <span className="text-gray-500">אין תמונה</span>
