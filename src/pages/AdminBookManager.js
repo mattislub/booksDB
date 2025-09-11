@@ -11,8 +11,7 @@ export default function AdminBookManager() {
     description: "",
     price: "",
     availability: "available",
-    image_url: "",
-    additional_images: "",
+    imageUrls: [""],
     categories: []
   });
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,19 +27,13 @@ export default function AdminBookManager() {
     setMessage("");
 
     try {
-      const imageUrls = [
-        formData.image_url,
-        ...formData.additional_images
-          .split(',')
-          .map(s => s.trim())
-          .filter(Boolean)
-      ].filter(Boolean);
+      const imageUrls = formData.imageUrls.filter(url => url.trim() !== "");
       const payload = {
         ...formData,
         image_url: imageUrls[0] || '',
         image_urls: imageUrls,
       };
-      delete payload.additional_images;
+      delete payload.imageUrls;
 
       const result = formData.id
         ? await updateBook(formData.id, payload)
@@ -54,8 +47,7 @@ export default function AdminBookManager() {
           description: "",
           price: "",
           availability: "available",
-          image_url: "",
-          additional_images: "",
+          imageUrls: [""],
           categories: []
         });
       } else {
@@ -72,10 +64,34 @@ export default function AdminBookManager() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleImageUrlChange = (idx, value) => {
+    setFormData(prev => {
+      const imageUrls = [...prev.imageUrls];
+      imageUrls[idx] = value;
+      return { ...prev, imageUrls };
+    });
+  };
+
+  const addImageField = () => {
+    setFormData(prev => ({ ...prev, imageUrls: [...prev.imageUrls, ""] }));
+  };
+
+  const removeImageField = (idx) => {
+    setFormData(prev => ({
+      ...prev,
+      imageUrls: prev.imageUrls.filter((_, i) => i !== idx)
+    }));
+  };
+
   const handleEdit = (book) => {
     const selected = categories
       .filter(cat => book.categories?.includes(cat.name))
       .map(cat => cat.id);
+    const imageUrls = book.image_urls?.length
+      ? book.image_urls
+      : book.image_url
+      ? [book.image_url]
+      : [""];
     setFormData({
       id: book.id,
       title: book.title || "",
@@ -83,8 +99,7 @@ export default function AdminBookManager() {
       description: book.description || "",
       price: book.price?.toString() || "",
       availability: book.availability || "available",
-      image_url: book.image_urls?.[0] || book.image_url || "",
-      additional_images: book.image_urls?.slice(1).join(',') || "",
+      imageUrls,
       categories: selected
     });
   };
@@ -176,23 +191,36 @@ export default function AdminBookManager() {
           <option value="out-of-stock">❌ לא במלאי</option>
         </select>
 
-        <input
-          type="text"
-          name="image_url"
-          value={formData.image_url}
-          onChange={handleChange}
-          placeholder="קישור לתמונה"
-          className="w-full border px-3 py-2 rounded"
-        />
-
-        <input
-          type="text"
-          name="additional_images"
-          value={formData.additional_images}
-          onChange={handleChange}
-          placeholder="קישורי תמונות נוספים (מופרדים בפסיק)"
-          className="w-full border px-3 py-2 rounded"
-        />
+        <div>
+          <label className="block text-gray-700 mb-1">קישורי תמונות</label>
+          {formData.imageUrls.map((url, idx) => (
+            <div key={idx} className="flex items-center gap-2 mb-2">
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => handleImageUrlChange(idx, e.target.value)}
+                placeholder={`קישור לתמונה ${idx + 1}`}
+                className="w-full border px-3 py-2 rounded"
+              />
+              {idx > 0 && (
+                <button
+                  type="button"
+                  onClick={() => removeImageField(idx)}
+                  className="text-red-600"
+                >
+                  ✖️
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addImageField}
+            className="text-blue-600 text-sm"
+          >
+            ➕ הוסף תמונה
+          </button>
+        </div>
 
         <div>
           <label className="block text-gray-700 mb-1">קטגוריות</label>
