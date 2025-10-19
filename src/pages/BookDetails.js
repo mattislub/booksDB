@@ -10,6 +10,7 @@ export default function BookDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -31,6 +32,19 @@ export default function BookDetails() {
   useEffect(() => {
     setSelectedImageIndex(0);
   }, [book]);
+
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setIsLightboxOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isLightboxOpen]);
 
   useEffect(() => {
     if (!book) return;
@@ -128,25 +142,47 @@ export default function BookDetails() {
       <div className="bg-white shadow rounded-lg p-6 flex flex-col md:flex-row gap-6">
         {images.length > 0 ? (
           <div className="w-full md:w-1/3 flex flex-col items-center">
-            <img
-              src={`${API_BASE}${images[selectedImageIndex]}`}
-              alt={book.title}
-              className="w-full h-64 object-contain rounded"
-            />
+            <div className="relative w-full">
+              <button
+                type="button"
+                onClick={() => setIsLightboxOpen(true)}
+                className="group w-full"
+                aria-label="הצג תמונה מלאה"
+              >
+                <img
+                  src={`${API_BASE}${images[selectedImageIndex]}`}
+                  alt={book.title}
+                  className="w-full h-64 object-contain rounded transition-transform duration-200 group-hover:scale-[1.02]"
+                />
+                <span className="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                  צפייה מלאה
+                </span>
+              </button>
+            </div>
             {images.length > 1 && (
-              <div className="flex mt-4 space-x-2 overflow-x-auto">
+              <div className="flex mt-4 gap-2 overflow-x-auto pb-2">
                 {images.map((url, idx) => (
-                  <img
+                  <button
                     key={idx}
-                    src={`${API_BASE}${url}`}
-                    alt={`${book.title} ${idx + 1}`}
-                    className={`w-16 h-16 object-contain rounded cursor-pointer border ${
+                    type="button"
+                    className={`relative w-16 h-16 flex-shrink-0 rounded border transition-all focus:outline-none focus:ring-2 focus:ring-[#a48327] ${
                       idx === selectedImageIndex
-                        ? "border-[#a48327]"
+                        ? "border-[#a48327] shadow"
                         : "border-transparent"
                     }`}
                     onClick={() => setSelectedImageIndex(idx)}
-                  />
+                    onDoubleClick={() => {
+                      setSelectedImageIndex(idx);
+                      setIsLightboxOpen(true);
+                    }}
+                    aria-label={`הצג ${book.title} מספר ${idx + 1}`}
+                  >
+                    <img
+                      src={`${API_BASE}${url}`}
+                      alt={`${book.title} ${idx + 1}`}
+                      className="w-full h-full object-contain rounded"
+                    />
+                  </button>
                 ))}
               </div>
             )}
@@ -178,6 +214,33 @@ export default function BookDetails() {
           </button>
         </div>
       </div>
+      {isLightboxOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          <button
+            type="button"
+            className="absolute top-6 right-6 text-white text-2xl"
+            onClick={() => setIsLightboxOpen(false)}
+            aria-label="סגור תצוגה מלאה"
+          >
+            ×
+          </button>
+          <div
+            className="max-h-[85vh] max-w-[90vw]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <img
+              src={`${API_BASE}${images[selectedImageIndex]}`}
+              alt={book.title}
+              className="h-full w-full object-contain"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
