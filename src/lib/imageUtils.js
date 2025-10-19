@@ -1,3 +1,5 @@
+import { API_URL } from './apiClient';
+
 export async function compressImage(file, maxSizeMB = 5) {
   if (!file) return file;
   if (file.size <= maxSizeMB * 1024 * 1024) {
@@ -54,4 +56,35 @@ export async function compressImage(file, maxSizeMB = 5) {
 
   // Fallback: return original file if compression failed
   return file;
+}
+
+export function normalizeApiImageUrl(url) {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+
+  const base = API_URL.replace(/\/+$/, '');
+  if (trimmed.startsWith(base)) {
+    const relative = trimmed.slice(base.length);
+    if (!relative) return '/';
+    return relative.startsWith('/') ? relative : `/${relative}`;
+  }
+
+  return trimmed;
+}
+
+export function getAbsoluteImageUrl(url) {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  const base = API_URL.replace(/\/+$/, '');
+  if (trimmed.startsWith('/')) {
+    return `${base}${trimmed}`;
+  }
+  return `${base}/${trimmed}`;
 }

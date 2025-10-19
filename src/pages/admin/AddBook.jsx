@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Upload, ArrowRight, Loader, Plus } from 'lucide-react';
+import { Upload, ArrowRight, Loader, Plus, X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { apiPostFormData, API_URL } from '../../lib/apiClient';
-import { compressImage } from '../../lib/imageUtils';
+import { apiPostFormData } from '../../lib/apiClient';
+import {
+  compressImage,
+  normalizeApiImageUrl,
+  getAbsoluteImageUrl
+} from '../../lib/imageUtils';
 import useCategoriesStore from '../../store/categoriesStore';
 import useBooksStore from '../../store/booksStore';
 
@@ -119,7 +123,7 @@ export default function AddBook() {
     is_new_in_market: false
   });
 
-const handleImageChange = async (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -130,14 +134,14 @@ const handleImageChange = async (e) => {
       const uploadRes = await apiPostFormData('/api/upload-image', formData);
 
       if (uploadRes.urls) {
-        setZipUrls(uploadRes.urls.map(u => `${API_URL}${u}`));
+        setZipUrls(uploadRes.urls.map(normalizeApiImageUrl));
         setStep(2);
       } else if (uploadRes.url) {
-        const fullUrl = `${API_URL}${uploadRes.url}`;
-        const resp = await fetch(fullUrl);
+        const relativeUrl = normalizeApiImageUrl(uploadRes.url);
+        const resp = await fetch(getAbsoluteImageUrl(relativeUrl));
         const blob = await resp.blob();
         const selectedFile = new File([blob], 'image.jpg', { type: blob.type });
-        await processSelectedFile(selectedFile, fullUrl);
+        await processSelectedFile(selectedFile, relativeUrl);
       }
     } catch (err) {
       console.error('Error uploading image:', err);
@@ -163,7 +167,7 @@ const handleImageChange = async (e) => {
         const formData = new FormData();
         formData.append('image', processed);
         const res = await apiPostFormData('/api/upload-image', formData);
-        urls.push(`${API_URL}${res.url}`);
+        urls.push(normalizeApiImageUrl(res.url));
       }
       setAdditionalImageUrls(prev => [...prev, ...urls]);
     } catch (err) {
@@ -184,7 +188,8 @@ const handleImageChange = async (e) => {
 
     setImageFile(processedFile);
     setImagePreview(URL.createObjectURL(processedFile));
-    setBookData(prev => ({ ...prev, image_url: url || prev.image_url }));
+    const normalizedUrl = normalizeApiImageUrl(url);
+    setBookData(prev => ({ ...prev, image_url: normalizedUrl || prev.image_url }));
     console.log('Selected image for upload', processedFile);
 
     if (mode === 'ai') {
@@ -246,14 +251,19 @@ const handleImageChange = async (e) => {
 
   const handleZipSelection = async (url) => {
     try {
-      const resp = await fetch(url);
+      const relativeUrl = normalizeApiImageUrl(url);
+      const resp = await fetch(getAbsoluteImageUrl(relativeUrl));
       const blob = await resp.blob();
       const file = new File([blob], 'image.jpg', { type: blob.type });
-      await processSelectedFile(file, url);
+      await processSelectedFile(file, relativeUrl);
       setZipUrls([]);
     } catch (err) {
       console.error('Error handling zip selection', err);
     }
+  };
+
+  const handleRemoveAdditionalImage = (index) => {
+    setAdditionalImageUrls(prev => prev.filter((_, idx) => idx !== index));
   };
 
   useEffect(() => {
@@ -269,17 +279,20 @@ const handleImageChange = async (e) => {
     setLoading(true);
 
     try {
-      let imageUrl = bookData.image_url;
+      let imageUrl = normalizeApiImageUrl(bookData.image_url);
 
       if (imageFile && !imageUrl) {
         const finalFile = await compressImage(imageFile, 0.3);
         const formData = new FormData();
         formData.append('image', finalFile);
         const uploadRes = await apiPostFormData('/api/upload-image', formData);
-        imageUrl = `${API_URL}${uploadRes.url}`;
+        imageUrl = normalizeApiImageUrl(uploadRes.url);
       }
 
-      const imageUrls = [imageUrl, ...additionalImageUrls].filter(Boolean);
+      const imageUrls = [
+        imageUrl,
+        ...additionalImageUrls.map(normalizeApiImageUrl)
+      ].filter(Boolean);
 
       const finalBookData = {
         ...bookData,
@@ -402,7 +415,7 @@ const handleImageChange = async (e) => {
             {zipUrls.map((url, idx) => (
               <img
                 key={idx}
-                src={url}
+                src={getAbsoluteImageUrl(url)}
                 alt={`option-${idx}`}
                 className="cursor-pointer border rounded"
                 onClick={() => handleZipSelection(url)}
@@ -449,12 +462,21 @@ const handleImageChange = async (e) => {
               {additionalImageUrls.length > 0 && (
                 <div className="flex gap-2 flex-wrap mt-2">
                   {additionalImageUrls.map((url, idx) => (
-                    <img
-                      key={idx}
-                      src={url}
-                      alt={`תמונה ${idx + 1}`}
-                      className="w-16 h-16 object-contain border rounded"
-                    />
+                    <div key={idx} className="relative">
+                      <img
+                        src={getAbsoluteImageUrl(url)}
+                        alt={`תמונה ${idx + 1}`}
+                        className="w-16 h-16 object-contain border rounded"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAdditionalImage(idx)}
+                        className="absolute -top-2 -left-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700"
+                        aria-label="הסר תמונה"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}
