@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit2, Trash2, Image, LayoutGrid, Table } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Image, LayoutGrid, Table, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import useBooksStore from '../../store/booksStore';
 import useCategoriesStore from '../../store/categoriesStore';
-import { apiPostFormData, API_URL } from '../../lib/apiClient';
-import { compressImage } from '../../lib/imageUtils';
+import { apiPostFormData } from '../../lib/apiClient';
+import {
+  compressImage,
+  normalizeApiImageUrl,
+  getAbsoluteImageUrl
+} from '../../lib/imageUtils';
 
 export default function Products() {
   const {
@@ -70,7 +74,9 @@ export default function Products() {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const imageUrls = [formData.image_url, ...additionalImages].filter(Boolean);
+    const normalizedMain = normalizeApiImageUrl(formData.image_url);
+    const normalizedAdditional = additionalImages.map(normalizeApiImageUrl);
+    const imageUrls = [normalizedMain, ...normalizedAdditional].filter(Boolean);
 
     const bookData = {
       ...formData,
@@ -94,57 +100,62 @@ export default function Products() {
   };
 
   const resetForm = () => {
-      setFormData({
-        title: '',
-        author: '',
-        description: '',
-        price: '',
-        categories: [],
-        image_url: '',
-        availability: 'available',
-        isbn: '',
-        publisher: '',
-        publication_year: '',
-        pages: '',
-        language: 'hebrew',
-        binding: 'hardcover',
-        dimensions: '',
-        weight: '',
-        stock: '1',
-        is_new_arrival: false,
-        is_new_in_market: false
-      });
+    setFormData({
+      title: '',
+      author: '',
+      description: '',
+      price: '',
+      categories: [],
+      image_url: '',
+      availability: 'available',
+      isbn: '',
+      publisher: '',
+      publication_year: '',
+      pages: '',
+      language: 'hebrew',
+      binding: 'hardcover',
+      dimensions: '',
+      weight: '',
+      stock: '1',
+      is_new_arrival: false,
+      is_new_in_market: false
+    });
     setImagePreview('');
     setValidationErrors({});
     setAdditionalImages([]);
   };
 
-    const handleEdit = (book) => {
-      setSelectedBook(book);
-      setFormData({
-        title: book.title || '',
-        author: book.author || '',
-        description: book.description || '',
-        price: book.price?.toString() || '',
-        categories: [],
-        image_url: book.image_urls?.[0] || book.image_url || '',
-        availability: book.availability || 'available',
-        isbn: book.isbn || '',
-        publisher: book.publisher || '',
-        publication_year: book.publication_year?.toString() || '',
-        pages: book.pages?.toString() || '',
-        language: book.language || 'hebrew',
-        binding: book.binding || 'hardcover',
-        dimensions: book.dimensions || '',
-        weight: book.weight || '',
-        stock: book.stock?.toString() || '1',
-        is_new_arrival: book.is_new_arrival || false,
-        is_new_in_market: book.is_new_in_market || false
-      });
-      setAdditionalImages(book.image_urls?.slice(1) || []);
-      setImagePreview(book.image_urls?.[0] || book.image_url || '');
-      setIsModalOpen(true);
-    };
+  const handleEdit = (book) => {
+    setSelectedBook(book);
+    const primaryImage = book.image_urls?.[0] || book.image_url || '';
+    const normalizedPrimary = normalizeApiImageUrl(primaryImage);
+    const normalizedAdditional = (book.image_urls?.slice(1) || []).map(
+      normalizeApiImageUrl
+    );
+    setFormData({
+      title: book.title || '',
+      author: book.author || '',
+      description: book.description || '',
+      price: book.price?.toString() || '',
+      categories: [],
+      image_url: normalizedPrimary,
+      availability: book.availability || 'available',
+      isbn: book.isbn || '',
+      publisher: book.publisher || '',
+      publication_year: book.publication_year?.toString() || '',
+      pages: book.pages?.toString() || '',
+      language: book.language || 'hebrew',
+      binding: book.binding || 'hardcover',
+      dimensions: book.dimensions || '',
+      weight: book.weight || '',
+      stock: book.stock?.toString() || '1',
+      is_new_arrival: book.is_new_arrival || false,
+      is_new_in_market: book.is_new_in_market || false
+    });
+    setAdditionalImages(normalizedAdditional);
+    setImagePreview(primaryImage ? getAbsoluteImageUrl(primaryImage) : '');
+    setIsModalOpen(true);
+  };
 
   useEffect(() => {
     if (selectedBook && categories.length) {
@@ -167,8 +178,9 @@ export default function Products() {
 
   const handleImageUrlChange = (e) => {
     const url = e.target.value;
-    setFormData({ ...formData, image_url: url });
-    setImagePreview(url);
+    const normalized = normalizeApiImageUrl(url);
+    setFormData({ ...formData, image_url: normalized });
+    setImagePreview(getAbsoluteImageUrl(normalized));
   };
 
   const handleImageUpload = async (e) => {
@@ -179,9 +191,9 @@ export default function Products() {
       const form = new FormData();
       form.append('image', compressed);
       const res = await apiPostFormData('/api/upload-image', form);
-      const url = `${API_URL}${res.url}`;
-      setFormData(prev => ({ ...prev, image_url: url }));
-      setImagePreview(url);
+      const relativeUrl = normalizeApiImageUrl(res.url);
+      setFormData(prev => ({ ...prev, image_url: relativeUrl }));
+      setImagePreview(getAbsoluteImageUrl(relativeUrl));
     } catch (err) {
       console.error('Error uploading image:', err);
       alert('שגיאה בהעלאת התמונה');
@@ -198,13 +210,17 @@ export default function Products() {
         const form = new FormData();
         form.append('image', compressed);
         const res = await apiPostFormData('/api/upload-image', form);
-        urls.push(`${API_URL}${res.url}`);
+        urls.push(normalizeApiImageUrl(res.url));
       }
       setAdditionalImages(prev => [...prev, ...urls]);
     } catch (err) {
       console.error('Error uploading image:', err);
       alert('שגיאה בהעלאת התמונה');
     }
+  };
+
+  const handleRemoveAdditionalImage = (index) => {
+    setAdditionalImages(prev => prev.filter((_, idx) => idx !== index));
   };
 
   const filteredBooks = books.filter(book =>
@@ -294,7 +310,7 @@ export default function Products() {
               <div className="aspect-w-3 aspect-h-4 bg-gray-100">
                 {book.image_urls?.[0] || book.image_url ? (
                   <img
-                    src={book.image_urls?.[0] || book.image_url}
+                    src={getAbsoluteImageUrl(book.image_urls?.[0] || book.image_url)}
                     alt={book.title}
                     className="w-full h-48 object-contain"
                   />
@@ -358,7 +374,11 @@ export default function Products() {
                 <tr key={book.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {book.image_urls?.[0] || book.image_url ? (
-                      <img src={book.image_urls?.[0] || book.image_url} alt={book.title} className="h-12 w-12 object-contain" />
+                      <img
+                        src={getAbsoluteImageUrl(book.image_urls?.[0] || book.image_url)}
+                        alt={book.title}
+                        className="h-12 w-12 object-contain"
+                      />
                     ) : (
                       <Image className="text-gray-400" size={24} />
                     )}
@@ -661,12 +681,21 @@ export default function Products() {
                 {additionalImages.length > 0 && (
                   <div className="flex gap-2 flex-wrap mt-2">
                     {additionalImages.map((url, idx) => (
-                      <img
-                        key={idx}
-                        src={url}
-                        alt={`תמונה ${idx + 1}`}
-                        className="w-16 h-16 object-contain border rounded"
-                      />
+                      <div key={idx} className="relative">
+                        <img
+                          src={getAbsoluteImageUrl(url)}
+                          alt={`תמונה ${idx + 1}`}
+                          className="w-16 h-16 object-contain border rounded"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAdditionalImage(idx)}
+                          className="absolute -top-2 -left-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700"
+                          aria-label="הסר תמונה"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
                     ))}
                   </div>
                 )}
