@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { ShoppingCart, Clock, Shield } from "lucide-react";
 import useCartStore from '../store/cartStore';
 import { API_URL } from '../lib/apiClient';
+import { getAbsoluteImageUrl } from '../lib/imageUtils';
 
 export default function BookDetails() {
   const { id } = useParams();
@@ -119,7 +120,7 @@ export default function BookDetails() {
 
     ogTitleTag.setAttribute('content', book.title);
     ogDescriptionTag.setAttribute('content', title);
-    ogImageTag.setAttribute('content', book.image_urls?.[0] || book.image_url || '');
+    ogImageTag.setAttribute('content', getAbsoluteImageUrl(book.image_urls?.[0] || book.image_url || ''));
 
     return () => {
       document.title = previousTitle;
@@ -157,11 +158,11 @@ export default function BookDetails() {
           {/* Image Section */}
           <div className="flex flex-col items-center justify-center bg-[#f8f6f1] rounded-xl p-8">
             <img
-              src={
+              src={getAbsoluteImageUrl(
                 book.image_urls?.[0] ||
                 book.image_url ||
                 `https://via.placeholder.com/400x600.png?text=${encodeURIComponent(book.title)}`
-              }
+              )}
               alt={book.title}
               className="max-h-[500px] object-contain rounded-lg shadow-lg"
             />
@@ -170,7 +171,7 @@ export default function BookDetails() {
                 {book.image_urls.slice(1).map((url, idx) => (
                   <img
                     key={idx}
-                    src={url}
+                    src={getAbsoluteImageUrl(url)}
                     alt={`${book.title} ${idx + 2}`}
                     className="w-16 h-16 object-contain border rounded"
                   />
@@ -248,11 +249,11 @@ export default function BookDetails() {
               >
                 <Link to={`/books/${relatedBook.id}`}>
                   <img
-                    src={
+                    src={getAbsoluteImageUrl(
                       relatedBook.image_urls?.[0] ||
                       relatedBook.image_url ||
                       `https://via.placeholder.com/200x300.png?text=${encodeURIComponent(relatedBook.title)}`
-                    }
+                    )}
                     alt={relatedBook.title}
                     className="w-full h-48 object-contain mb-4"
                   />
