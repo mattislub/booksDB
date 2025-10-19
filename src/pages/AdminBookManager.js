@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
+import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import useBooksStore from '../store/booksStore';
 import useCategoriesStore from '../store/categoriesStore';
+import { apiPostFormData } from '../lib/apiClient';
+import {
+  compressImage,
+  normalizeApiImageUrl,
+  getAbsoluteImageUrl
+} from '../lib/imageUtils';
 
 export default function AdminBookManager() {
   const { books, loading, error, initialize, addBook, updateBook, deleteBook } = useBooksStore();
@@ -11,11 +18,14 @@ export default function AdminBookManager() {
     description: "",
     price: "",
     availability: "available",
-    imageUrls: [""],
+    image_url: '',
     categories: []
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [message, setMessage] = useState("");
+  const [mainImagePreview, setMainImagePreview] = useState('');
+  const [additionalImages, setAdditionalImages] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     initialize();
@@ -27,13 +37,15 @@ export default function AdminBookManager() {
     setMessage("");
 
     try {
-      const imageUrls = formData.imageUrls.filter(url => url.trim() !== "");
+      const normalizedMain = normalizeApiImageUrl(formData.image_url);
+      const normalizedAdditional = additionalImages.map(normalizeApiImageUrl);
+      const imageUrls = [normalizedMain, ...normalizedAdditional].filter(Boolean);
+
       const payload = {
         ...formData,
         image_url: imageUrls[0] || '',
         image_urls: imageUrls,
       };
-      delete payload.imageUrls;
 
       const result = formData.id
         ? await updateBook(formData.id, payload)
@@ -47,9 +59,11 @@ export default function AdminBookManager() {
           description: "",
           price: "",
           availability: "available",
-          imageUrls: [""],
+          image_url: '',
           categories: []
         });
+        setMainImagePreview('');
+        setAdditionalImages([]);
       } else {
         throw result.error;
       }
@@ -64,34 +78,15 @@ export default function AdminBookManager() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUrlChange = (idx, value) => {
-    setFormData(prev => {
-      const imageUrls = [...prev.imageUrls];
-      imageUrls[idx] = value;
-      return { ...prev, imageUrls };
-    });
-  };
-
-  const addImageField = () => {
-    setFormData(prev => ({ ...prev, imageUrls: [...prev.imageUrls, ""] }));
-  };
-
-  const removeImageField = (idx) => {
-    setFormData(prev => ({
-      ...prev,
-      imageUrls: prev.imageUrls.filter((_, i) => i !== idx)
-    }));
-  };
-
   const handleEdit = (book) => {
     const selected = categories
       .filter(cat => book.categories?.includes(cat.name))
       .map(cat => cat.id);
-    const imageUrls = book.image_urls?.length
-      ? book.image_urls
-      : book.image_url
-      ? [book.image_url]
-      : [""];
+    const primaryImage = book.image_urls?.[0] || book.image_url || '';
+    const normalizedPrimary = normalizeApiImageUrl(primaryImage);
+    const normalizedAdditional = (book.image_urls?.slice(1) || [])
+      .map(normalizeApiImageUrl)
+      .filter(Boolean);
     setFormData({
       id: book.id,
       title: book.title || "",
@@ -99,9 +94,11 @@ export default function AdminBookManager() {
       description: book.description || "",
       price: book.price?.toString() || "",
       availability: book.availability || "available",
-      imageUrls,
+      image_url: normalizedPrimary,
       categories: selected
     });
+    setMainImagePreview(getAbsoluteImageUrl(primaryImage));
+    setAdditionalImages(normalizedAdditional);
   };
 
   const handleDelete = async (id) => {
@@ -117,6 +114,71 @@ export default function AdminBookManager() {
       setMessage("❌ שגיאה במחיקה");
       console.error("שגיאה במחיקת ספר:", err);
     }
+  };
+
+  const handleMainImageUrlChange = (e) => {
+    const normalized = normalizeApiImageUrl(e.target.value);
+    setFormData(prev => ({ ...prev, image_url: normalized }));
+    setMainImagePreview(getAbsoluteImageUrl(normalized));
+  };
+
+  const handleMainImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      let processed = file;
+      try {
+        processed = await compressImage(file, 0.3);
+      } catch (err) {
+        console.error('שגיאה בדחיסת התמונה:', err);
+      }
+      const form = new FormData();
+      form.append('image', processed);
+      const res = await apiPostFormData('/api/upload-image', form);
+      const relativeUrl = normalizeApiImageUrl(res?.url);
+      setFormData(prev => ({ ...prev, image_url: relativeUrl }));
+      setMainImagePreview(getAbsoluteImageUrl(relativeUrl));
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      alert('שגיאה בהעלאת התמונה');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleAdditionalImagesUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const urls = [];
+      for (const file of files) {
+        let processed = file;
+        try {
+          processed = await compressImage(file, 0.3);
+        } catch (err) {
+          console.error('שגיאה בדחיסת התמונה:', err);
+        }
+        const form = new FormData();
+        form.append('image', processed);
+        const res = await apiPostFormData('/api/upload-image', form);
+        const relativeUrl = normalizeApiImageUrl(res?.url);
+        if (relativeUrl) {
+          urls.push(relativeUrl);
+        }
+      }
+      setAdditionalImages(prev => [...prev, ...urls]);
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      alert('שגיאה בהעלאת התמונה');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveAdditionalImage = (index) => {
+    setAdditionalImages(prev => prev.filter((_, idx) => idx !== index));
   };
 
   if (loading) return <div className="text-center py-8">טוען...</div>;
@@ -192,34 +254,71 @@ export default function AdminBookManager() {
         </select>
 
         <div>
-          <label className="block text-gray-700 mb-1">קישורי תמונות</label>
-          {formData.imageUrls.map((url, idx) => (
-            <div key={idx} className="flex items-center gap-2 mb-2">
+          <label className="block text-gray-700 mb-1">תמונת מוצר ראשית</label>
+          <div className="flex flex-col gap-2">
+            {mainImagePreview ? (
+              <img
+                src={mainImagePreview}
+                alt="תמונה ראשית"
+                className="w-32 h-40 object-contain bg-white border rounded"
+              />
+            ) : (
+              <div className="w-32 h-40 flex items-center justify-center bg-gray-100 border rounded text-gray-400">
+                <ImageIcon size={32} />
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleMainImageUpload}
+              className="w-full border px-3 py-2 rounded"
+              disabled={uploading}
+            />
+            <div className="flex items-center gap-2">
+              <Upload size={16} className="text-gray-500" />
               <input
                 type="text"
-                value={url}
-                onChange={(e) => handleImageUrlChange(idx, e.target.value)}
-                placeholder={`קישור לתמונה ${idx + 1}`}
+                name="image_url"
+                value={formData.image_url}
+                onChange={handleMainImageUrlChange}
+                placeholder="או הדביקו קישור לתמונה"
                 className="w-full border px-3 py-2 rounded"
               />
-              {idx > 0 && (
-                <button
-                  type="button"
-                  onClick={() => removeImageField(idx)}
-                  className="text-red-600"
-                >
-                  ✖️
-                </button>
-              )}
             </div>
-          ))}
-          <button
-            type="button"
-            onClick={addImageField}
-            className="text-blue-600 text-sm"
-          >
-            ➕ הוסף תמונה
-          </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-gray-700 mb-1">תמונות נוספות</label>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleAdditionalImagesUpload}
+            className="w-full border px-3 py-2 rounded"
+            disabled={uploading}
+          />
+          {additionalImages.length > 0 && (
+            <div className="flex gap-2 flex-wrap mt-3">
+              {additionalImages.map((url, idx) => (
+                <div key={url + idx} className="relative">
+                  <img
+                    src={getAbsoluteImageUrl(url)}
+                    alt={`תמונה ${idx + 1}`}
+                    className="w-16 h-16 object-cover border rounded"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveAdditionalImage(idx)}
+                    className="absolute -top-2 -left-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700"
+                    aria-label="הסר תמונה"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>
@@ -249,6 +348,7 @@ export default function AdminBookManager() {
           <button
             type="submit"
             className="bg-[#a48327] text-white py-2 px-4 rounded hover:bg-[#8b6f1f]"
+            disabled={uploading}
           >
             {formData.id ? "עדכן ספר" : "שמור ספר"}
           </button>
@@ -287,7 +387,7 @@ export default function AdminBookManager() {
             </div>
             {(book.image_urls?.[0] || book.image_url) && (
               <img
-                src={book.image_urls?.[0] || book.image_url}
+                src={getAbsoluteImageUrl(book.image_urls?.[0] || book.image_url)}
                 alt={book.title}
                 className="w-32 h-40 object-contain bg-white rounded mb-2"
               />
