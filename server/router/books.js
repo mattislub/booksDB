@@ -4,6 +4,117 @@ import { sendAdminBookMilestoneEmail } from '../email.js';
 
 const router = express.Router();
 
+function parsePostgresArray(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value.filter((item) => typeof item === 'string' && item.trim());
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    // Attempt to parse JSON encoded arrays first
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return Array.isArray(parsed)
+          ? parsed.filter((item) => typeof item === 'string' && item.trim())
+          : [];
+      } catch (_) {
+        // fall through to Postgres array parsing
+      }
+    }
+
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      const content = trimmed.slice(1, -1);
+      if (!content) return [];
+
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      let isEscaped = false;
+
+      for (const char of content) {
+        if (isEscaped) {
+          current += char;
+          isEscaped = false;
+          continue;
+        }
+
+        if (char === '\\') {
+          isEscaped = true;
+          continue;
+        }
+
+        if (char === '"') {
+          inQuotes = !inQuotes;
+          continue;
+        }
+
+        if (char === ',' && !inQuotes) {
+          result.push(current);
+          current = '';
+          continue;
+        }
+
+        current += char;
+      }
+
+      if (current !== '') {
+        result.push(current);
+      }
+
+      return result
+        .map((item) => item === 'NULL' ? '' : item)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    return [trimmed];
+  }
+
+  return [];
+}
+
+function normalizeImageList(urls = [], fallbackImage) {
+  const seen = new Set();
+  const sanitized = [];
+
+  for (const url of urls) {
+    if (typeof url !== 'string') continue;
+    const trimmed = url.trim();
+    if (!trimmed || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    sanitized.push(trimmed);
+  }
+
+  if (typeof fallbackImage === 'string') {
+    const trimmed = fallbackImage.trim();
+    if (trimmed && !seen.has(trimmed)) {
+      sanitized.unshift(trimmed);
+      seen.add(trimmed);
+    }
+  }
+
+  return sanitized;
+}
+
+function normalizeBookRecord(record) {
+  const imageList = normalizeImageList(
+    parsePostgresArray(record?.image_urls),
+    record?.image_url
+  );
+
+  const imageUrl = imageList[0] || (typeof record?.image_url === 'string' ? record.image_url.trim() || null : null);
+
+  return {
+    ...record,
+    image_url: imageUrl,
+    image_urls: imageList,
+  };
+}
+
 router.get('/api/books', async (req, res) => {
   try {
     const { search, filter, categories, minPrice, maxPrice, page, limit } = req.query;
@@ -76,7 +187,10 @@ router.get('/api/books', async (req, res) => {
     }
 
     const { rows } = await pool.query(query, queryParams);
-    const result = rows.map(r => ({ ...r, category: r.categories[0] || null }));
+    const result = rows.map((row) => {
+      const normalized = normalizeBookRecord(row);
+      return { ...normalized, category: normalized.categories?.[0] || null };
+    });
 
     if (limitNum) {
       let countQuery = `
@@ -110,7 +224,8 @@ router.get('/api/books/:id', async (req, res) => {
       [id]
     );
     if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
-    const book = { ...rows[0], category: rows[0].categories[0] || null };
+    const normalized = normalizeBookRecord(rows[0]);
+    const book = { ...normalized, category: normalized.categories?.[0] || null };
     res.json(book);
   } catch (err) {
     console.error(err);
@@ -153,11 +268,13 @@ router.post('/api/books', async (req, res) => {
       return isNaN(n) ? null : n;
     };
 
-    const imageUrls = Array.isArray(image_urls)
+    let imageUrls = Array.isArray(image_urls)
       ? image_urls
       : image_url
       ? [image_url]
       : [];
+
+    imageUrls = normalizeImageList(imageUrls, image_url);
 
     console.log('Saving book with image URLs', imageUrls, 'raw image_url', image_url, 'raw image_urls', image_urls);
 
@@ -243,7 +360,7 @@ router.post('/api/books', async (req, res) => {
 
     const { rows } = await pool.query(query, values);
 
-    const book = rows[0];
+    const book = normalizeBookRecord(rows[0]);
     console.log('Inserted book', book);
 
     const categoryList = Array.isArray(categories)
@@ -316,11 +433,13 @@ router.post('/api/books/:id', async (req, res) => {
       return isNaN(n) ? null : n;
     };
 
-    const imageUrls = Array.isArray(image_urls)
+    let imageUrls = Array.isArray(image_urls)
       ? image_urls
       : image_url
       ? [image_url]
       : [];
+
+    imageUrls = normalizeImageList(imageUrls, image_url);
 
     console.log('Updating book', id, 'with image URLs', imageUrls, 'raw image_url', image_url, 'raw image_urls', image_urls);
 
@@ -402,7 +521,7 @@ router.post('/api/books/:id', async (req, res) => {
     const { rows } = await pool.query(query, values);
     if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
 
-    const book = rows[0];
+    const book = normalizeBookRecord(rows[0]);
     console.log('Updated book', book);
 
     const categoryList = Array.isArray(categories)
